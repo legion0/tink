@@ -21,7 +21,7 @@ import starcraftbot.proxybot.wmes.unit.MineralWME;
 import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 /**
- * StarCraft AI Interface.
+ * StarCraft AI Interface. 
  *
  * Maintains StarCraft state and provides hooks for StarCraft commands.
  *
