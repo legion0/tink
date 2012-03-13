@@ -5,6 +5,8 @@ package starcraftbot.proxybot;
  * To get the constant value of an enum, use ordinal. 
  *  - e.g. int raceID = Race.Zerg.ordinal()
  */
+
+// test
 public class Constants {
 
 	/** 
