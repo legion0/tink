@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import starcraftbot.proxybot.bot.ExampleStarCraftBot;
+import starcraftbot.proxybot.bot.MarineMeleeBot;
 import starcraftbot.proxybot.bot.StarCraftBot;
 /**
  * ProxyBot.
@@ -20,19 +21,19 @@ public class ProxyBot {
 	public static int port = 12345;
 	
 	/** allow the user to control units */
-	public static boolean allowUserControl = true;
+	public static boolean allowUserControl = false;
 	
 	/** turn on complete information */
 	public static boolean completeInformation = true;
 
 	/** display agent commands in SC? */
-	public static boolean logCommands = false;
+	public static boolean logCommands = true;
 
 	/** display agent commands in SC? */
 	public static boolean terrainAnalysis = true;
 
 	/** run the game very fast ? */
-	public static boolean speedUp = true;
+	public static boolean speedUp = false;
 
 	public static void main(String[] args) {		
 		new ProxyBot().start();
@@ -63,7 +64,7 @@ public class ProxyBot {
 	 * Manages communication with StarCraft.
 	 */
 	private void runGame(Socket socket) {		
-		final StarCraftBot bot = new ExampleStarCraftBot();
+		final StarCraftBot bot = new MarineMeleeBot();
 		Game gameRef = null;
 				
 		try {
@@ -111,9 +112,9 @@ public class ProxyBot {
 	    		else if (update == null) {
 	    			break;
 	    		}
-	    		else {	    				    			
+	    		else {
 	    			// update the game
-	    			game.update(update);	    			
+	    			game.update(update);
 
 	    			if (firstFrame) {	    				
 	    				firstFrame = false;
