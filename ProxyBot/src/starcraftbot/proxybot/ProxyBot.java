@@ -6,7 +6,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-import starcraftbot.proxybot.bot.ExampleStarCraftBot;
 import starcraftbot.proxybot.bot.MarineMeleeBot;
 import starcraftbot.proxybot.bot.StarCraftBot;
 /**

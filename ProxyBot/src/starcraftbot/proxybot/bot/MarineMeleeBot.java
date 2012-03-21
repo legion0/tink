@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import learning.Qlearner;
@@ -30,7 +31,7 @@ import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 import states.StateFull;
 import states.StateI;
-import states.StateUnitFull;
+import states.StateUnitMin;
 /**
  * Example implementation of the StarCraftBot.
  * 
@@ -49,6 +50,10 @@ public class MarineMeleeBot implements StarCraftBot {
 	private List<EnemyUnitWME> _enemies;
 	
 	private boolean _persistGame = true;
+	
+	private LinkedHashMap<Integer, StateI> _lastStates = new LinkedHashMap<Integer, StateI>(5);
+	
+	private Qlearner _ql = new Qlearner("db/MarineDB1.txt");
 
 	
 	/**
@@ -57,8 +62,6 @@ public class MarineMeleeBot implements StarCraftBot {
 	 * The bot is now the owner of the current thread.
 	 */
 	public void start(Game game) {
-		
-		Qlearner ql = new Qlearner();
 		
 		BufferedWriter bw = null;
 		String stamp = new customDateFormatStamp().format(new Date());
@@ -70,7 +73,7 @@ public class MarineMeleeBot implements StarCraftBot {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		
+		int round = 0;
 		// run until told to exit
 		while (running) {
 			try {
@@ -92,10 +95,28 @@ public class MarineMeleeBot implements StarCraftBot {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			
 			for (PlayerUnitWME unit : game.getPlayerUnits()) {
-				StateI state = new StateUnitFull(game, unit);
-				ACTION a = ql.getAction(state);
+				StateI state = null;
+				try {
+					state = new StateUnitMin(game, unit);
+				} catch (JsonGenerationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (JsonMappingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				ACTION a = _ql.getAction(state);
+				
+				if (round > 0) {
+					StateI lastState = _lastStates.get(unit.getID());
+					Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
+					_ql.update(lastState, a, state, r);
+				}
+				_lastStates.put(unit.getID(), state);
 				
 				if (_persistGame)
 					try {
@@ -128,6 +149,7 @@ public class MarineMeleeBot implements StarCraftBot {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			round++;
 		}
 		
 		if (_persistGame)
@@ -138,7 +160,7 @@ public class MarineMeleeBot implements StarCraftBot {
 				e.printStackTrace();
 			}
 	}
-
+	
 	private int getClosestEnemy(PlayerUnitWME unit) {
 		int id = -1;
 		double closest = Double.MAX_VALUE;
@@ -162,5 +184,6 @@ public class MarineMeleeBot implements StarCraftBot {
 	 */
 	public void stop() {
 		running = false;
+		_ql.persist();
 	}
 }

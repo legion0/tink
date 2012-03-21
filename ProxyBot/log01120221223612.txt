@@ -1,0 +1,4 @@
+[{"pid":0,"id":1,"hp":34,"x":2,"y":4},{"pid":1,"id":6,"hp":10,"x":6,"y":6},{"pid":1,"id":7,"hp":28,"x":6,"y":5},{"pid":1,"id":8,"hp":22,"x":5,"y":7},{"pid":1,"id":9,"hp":40,"x":5,"y":7},{"pid":0,"id":4,"hp":40,"x":3,"y":3},{"pid":0,"id":5,"hp":40,"x":4,"y":2}]
+ACTION_ATTACK ACTION_RETREAT ACTION_ATTACK 
+[{"pid":1,"id":8,"hp":10,"x":2,"y":3},{"pid":1,"id":9,"hp":28,"x":1,"y":4}]
+
