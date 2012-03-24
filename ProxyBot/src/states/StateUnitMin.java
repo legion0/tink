@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -12,11 +13,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import actions.ActionI.ACTION;
 
 import starcraftbot.proxybot.Game;
+import starcraftbot.proxybot.command.Command;
 import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 
 public class StateUnitMin extends StateFull {
-	private LinkedHashMap<String, Integer> _data = new LinkedHashMap<String, Integer>(3);
+	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();
+	private static TreeMap<Integer, String> _lastOrders = new TreeMap<Integer, String>();
 	
 	public StateUnitMin(Game game, PlayerUnitWME unit) throws JsonGenerationException, JsonMappingException, IOException {
 		super(game);
@@ -54,14 +57,23 @@ public class StateUnitMin extends StateFull {
 	
 	public static Double reward(StateUnitMin s, ACTION a, StateUnitMin s2) {
 		Double r = 0.0;
-		switch(a) {
+		/*switch(a) {
 		case ACTION_ATTACK:
 			r = (s2.getMapVal("enemyHP") < s.getMapVal("enemyHP"))? 1.0 : 0.0;
 			break;
 		case ACTION_RETREAT:
 			r = 0.0;
 			break;
-		}
+		}*/
+		int teamHP = s.getMapVal("teamHP") + s.getMapVal("hp");
+		int enemyHP = s.getMapVal("enemyHP");
+		int teamHP2 = s2.getMapVal("teamHP") + s2.getMapVal("hp");
+		int enemyHP2 = s2.getMapVal("enemyHP");
+		r += (double)((teamHP2 - teamHP) + (enemyHP - enemyHP2));
+		
+		if (a == ACTION.ACTION_RETREAT)
+			r -= 0.001;
+		
 		return r;
 	}
 	
@@ -70,7 +82,37 @@ public class StateUnitMin extends StateFull {
 			return val != null ? val : 0;
 	}
 
-	
+	public static void perfomAction(ACTION a, PlayerUnitWME unit, Game game) {
+		String oldOrder = _lastOrders.get(unit.getID());
+		int closest = getClosestEnemy(unit, game);
+		
+		String newOrder = "";
+		switch (a) {
+		case ACTION_RETREAT:
+			newOrder = "" + unit.getOrder()  + "ACTION_RETREAT";
+			break;
+		case ACTION_ATTACK:
+			newOrder = "" + unit.getOrder()  + "ACTION_ATTACK" + closest;
+			break;
+		}
+		
+		if (oldOrder != null) {
+			if (oldOrder.equals(newOrder))
+				return;
+		}
+		_lastOrders.put(unit.getID(), newOrder);
+		
+		switch(a) {
+		case ACTION_RETREAT:
+			game.getCommandQueue().rightClick(unit.getID(), 1, 1);
+			break;
+		case ACTION_ATTACK:
+			if (closest != -1)
+				game.getCommandQueue().rightClick(unit.getID(), closest);
+			break;
+		}
+		System.out.println(a.toString() + " " + unit.getID());
+	}
 	
 	
 	
@@ -107,5 +149,10 @@ public class StateUnitMin extends StateFull {
 		} else if (!_data.equals(other._data))
 			return false;
 		return true;
+	}
+
+	public static void EOG() {
+		_lastOrders.clear();
+		
 	}
 }

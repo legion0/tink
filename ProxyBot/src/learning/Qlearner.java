@@ -17,9 +17,9 @@ public class Qlearner {
 	private String _filePath = null;
 	
 	LinkedHashMap<String, Double> _qMap = new LinkedHashMap<String, Double>();
-	private static Double _epsilon = 0.5;
-	private static Double _alpha = 0.2;
-	private static Double _gamma = 0.9;
+	//private static Double _epsilon = 0.0,  _alpha = 0.0, _gamma = 0.0;
+	private static Double _epsilon = 0.01,  _alpha = 0.1, _gamma = 0.9;
+	//private static Double _epsilon = 0.5,  _alpha = 0.1, _gamma = 0.9;
 	
 	public Qlearner(String filePath) {
 		_filePath = filePath;
@@ -59,10 +59,14 @@ public class Qlearner {
 	
 	public ACTION getAction(StateI s) {
 		ACTION action;
-		if (Math.random() > _epsilon)
+		if (Math.random() > _epsilon) {
 			action = getPolicy(s);
-		else
+			System.out.println("P: " + action.toString() + " | " + s.toString());
+		}
+		else {
 			action = ActionI.getRandom();
+			System.out.println("R: " + action.toString() + " | " + s.toString());
+		}
 		return action;
 	}
 	

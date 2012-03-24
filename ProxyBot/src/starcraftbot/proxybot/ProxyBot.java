@@ -26,13 +26,13 @@ public class ProxyBot {
 	public static boolean completeInformation = true;
 
 	/** display agent commands in SC? */
-	public static boolean logCommands = true;
+	public static boolean logCommands = false;
 
 	/** display agent commands in SC? */
 	public static boolean terrainAnalysis = true;
 
 	/** run the game very fast ? */
-	public static boolean speedUp = false;
+	public static int gameSpeed = 50;
 
 	public static void main(String[] args) {		
 		new ProxyBot().start();
@@ -98,9 +98,8 @@ public class ProxyBot {
 	    	gameRef = game;
 	    	boolean firstFrame = true;
 
-	    	if (speedUp) {
-	    		game.getCommandQueue().setGameSpeed(0);
-	    	}
+    		game.getCommandQueue().setGameSpeed(gameSpeed);
+
 	    	// 4. game updates
 	    	while (true) {
 	    		

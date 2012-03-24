@@ -1,0 +1,8 @@
+[{"pid":1,"id":6,"hp":40,"x":21,"y":20},{"pid":0,"id":1,"hp":40,"x":2,"y":3},{"pid":0,"id":2,"hp":40,"x":3,"y":1},{"pid":1,"id":7,"hp":40,"x":21,"y":21},{"pid":1,"id":8,"hp":40,"x":20,"y":20},{"pid":0,"id":3,"hp":40,"x":3,"y":3},{"pid":1,"id":9,"hp":40,"x":20,"y":21},{"pid":0,"id":4,"hp":40,"x":2,"y":2},{"pid":1,"id":10,"hp":40,"x":19,"y":20},{"pid":0,"id":5,"hp":40,"x":2,"y":1}]
+ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT 
+[{"pid":1,"id":6,"hp":40,"x":6,"y":8},{"pid":0,"id":1,"hp":40,"x":0,"y":0},{"pid":0,"id":2,"hp":40,"x":1,"y":0},{"pid":1,"id":7,"hp":40,"x":8,"y":7},{"pid":1,"id":8,"hp":40,"x":5,"y":6},{"pid":0,"id":3,"hp":40,"x":0,"y":0},{"pid":1,"id":9,"hp":40,"x":7,"y":7},{"pid":0,"id":4,"hp":40,"x":0,"y":1},{"pid":1,"id":10,"hp":40,"x":5,"y":6},{"pid":0,"id":5,"hp":40,"x":0,"y":0}]
+ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT ACTION_RETREAT 
+[{"pid":1,"id":7,"hp":40,"x":4,"y":3},{"pid":1,"id":8,"hp":4,"x":3,"y":3},{"pid":0,"id":3,"hp":40,"x":0,"y":0}]
+ACTION_ATTACK 
+[{"pid":1,"id":7,"hp":10,"x":3,"y":2}]
+

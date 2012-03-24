@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import starcraftbot.proxybot.Game;
+import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
+import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -76,6 +79,23 @@ public class StateFull implements StateI {
 			e.printStackTrace();
 		}
 		return sw.toString();
+	}
+	
+	protected static int getClosestEnemy(PlayerUnitWME unit, Game game) {
+		int id = -1;
+		double closest = Double.MAX_VALUE;
+		List<EnemyUnitWME> enemies = game.getEnemyUnits();
+		for (UnitWME e : enemies) {
+			double dx = unit.getX() - e.getX();
+			double dy = unit.getY() - e.getY();
+			double dist = Math.sqrt(dx*dx + dy*dy); 
+
+			if (dist < closest) {
+				id = e.getID();
+				closest = dist;
+			}
+		}
+		return id;
 	}
 	
 }

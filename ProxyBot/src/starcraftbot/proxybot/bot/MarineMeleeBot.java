@@ -18,12 +18,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import learning.Qlearner;
 import misc.customDateFormatStamp;
 import starcraftbot.proxybot.Game;
 import starcraftbot.proxybot.Constants.Order;
 import starcraftbot.proxybot.Constants.Race;
+import starcraftbot.proxybot.ProxyBot;
 import starcraftbot.proxybot.wmes.UnitTypeWME;
 import starcraftbot.proxybot.wmes.UnitTypeWME.UnitType;
 import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
@@ -53,7 +55,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	
 	private LinkedHashMap<Integer, StateI> _lastStates = new LinkedHashMap<Integer, StateI>(5);
 	
-	private Qlearner _ql = new Qlearner("db/MarineDB1.txt");
+	private Qlearner _ql = new Qlearner("db/MarineDB2.txt");
 
 	
 	/**
@@ -64,118 +66,99 @@ public class MarineMeleeBot implements StarCraftBot {
 	public void start(Game game) {
 		
 		BufferedWriter bw = null;
+		StringBuffer sb = null;
 		String stamp = new customDateFormatStamp().format(new Date());
 		
-		if (_persistGame)
-			try {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("log" + stamp + ".txt")));
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		if (_persistGame) {
+			sb = new StringBuffer();
+		}
 		int round = 0;
 		// run until told to exit
 		while (running) {
-			try {
-				Thread.sleep(1000);
+			/*try {
+				Thread.sleep(6*(ProxyBot.gameSpeed+1));
 			}
-			catch (Exception e) {}
-			_enemies = game.getEnemyUnits();
-			
-			if (_persistGame)
+			catch (Exception e) {}*/
+			synchronized (game) {
 				try {
-					bw.write(new StateFull(game).toString() + '\n');
-				} catch (JsonGenerationException e) {
+					game.wait();
+				} catch (InterruptedException e2) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JsonMappingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					e2.printStackTrace();
+					break;
 				}
-			for (PlayerUnitWME unit : game.getPlayerUnits()) {
-				StateI state = null;
-				try {
-					state = new StateUnitMin(game, unit);
-				} catch (JsonGenerationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (JsonMappingException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				ACTION a = _ql.getAction(state);
 				
-				if (round > 0) {
-					StateI lastState = _lastStates.get(unit.getID());
-					Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
-					_ql.update(lastState, a, state, r);
-				}
-				_lastStates.put(unit.getID(), state);
+				_enemies = game.getEnemyUnits();
 				
 				if (_persistGame)
 					try {
-						bw.write(a.name() + ' ');
+						sb.append(new StateFull(game).toString() + '\n');
+					} catch (JsonGenerationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (JsonMappingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				try {
-					bw.flush();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				for (PlayerUnitWME unit : game.getPlayerUnits()) {
+					StateI state = null;
+					try {
+						state = new StateUnitMin(game, unit);
+					} catch (JsonGenerationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (JsonMappingException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					ACTION a = _ql.getAction(state);
+					
+					if (round > 0) {
+						StateI lastState = _lastStates.get(unit.getID());
+						Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
+						_ql.update(lastState, a, state, r);
+					}
+					_lastStates.put(unit.getID(), state);
+					
+					if (_persistGame) {
+						sb.append(a.name() + ' ');
+					}
+					StateUnitMin.perfomAction(a, unit, game);
 				}
 				
-				switch(a) {
-				case ACTION_RETREAT:
-					game.getCommandQueue().rightClick(unit.getID(), 1, 1);
-					break;
-				case ACTION_ATTACK:
-					game.getCommandQueue().rightClick(unit.getID(), getClosestEnemy(unit));
-					break;
+				reverseDeathScan: for (Entry<Integer, StateI> entry : _lastStates.entrySet()) {
+					int unitId = entry.getKey();
+					for (PlayerUnitWME unit : game.getPlayerUnits()) {
+						if (unit.getID() == unitId)
+							continue reverseDeathScan;
+					}
+					// unit is dead
 				}
+				
+				if (_persistGame) {
+						sb.append("\n");
+				}
+				round++;
 			}
-			
-			if (_persistGame)
-				try {
-					bw.write("\n");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			round++;
 		}
+		System.out.println(round);
+		StateUnitMin.EOG();
 		
 		if (_persistGame)
 			try {
+				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("logs/log" + stamp + ".txt")));
+				bw.write(sb.toString());
 				bw.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-	}
-	
-	private int getClosestEnemy(PlayerUnitWME unit) {
-		int id = -1;
-		double closest = Double.MAX_VALUE;
-		
-		for (UnitWME e : _enemies) {
-			double dx = unit.getX() - e.getX();
-			double dy = unit.getY() - e.getY();
-			double dist = Math.sqrt(dx*dx + dy*dy); 
-
-			if (dist < closest) {
-				id = e.getID();
-				closest = dist;
-			}
-		}
-		return id;
 	}
 
 
