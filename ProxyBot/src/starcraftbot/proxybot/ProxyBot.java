@@ -32,7 +32,7 @@ public class ProxyBot {
 	public static boolean terrainAnalysis = true;
 
 	/** run the game very fast ? */
-	public static int gameSpeed = 50;
+	public static int gameSpeed = 100;
 
 	public static void main(String[] args) {		
 		new ProxyBot().start();
@@ -139,7 +139,8 @@ public class ProxyBot {
 			System.out.println("StarCraft game over");
 			
 			// stop update thread 
-			gameRef.stop();
+			if (gameRef != null)
+				gameRef.stop();
 			
 			// stop the bot
 			if (bot != null) {

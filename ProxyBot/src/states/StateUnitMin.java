@@ -24,6 +24,8 @@ public class StateUnitMin extends StateFull {
 	public StateUnitMin(Game game, PlayerUnitWME unit) throws JsonGenerationException, JsonMappingException, IOException {
 		super(game);
 		_data.put("hp", discreteHP(unit.getHitPoints()));
+		int closest = getClosestEnemy(unit, game);
+		_data.put("distance", getDistance(unit.getID(), closest, game));
 		for (UnitWME u : game.getUnits()) {
 			if (u.getPlayerID() == unit.getPlayerID() && u.getID() != unit.getID())
 				_data.put("teamHP", getMapVal("teamHP") + discreteHP(u.getHitPoints()));
@@ -56,6 +58,9 @@ public class StateUnitMin extends StateFull {
 	}
 	
 	public static Double reward(StateUnitMin s, ACTION a, StateUnitMin s2) {
+		if (s.toString().equals(s2.toString()))
+			System.out.println(a.toString() + ": " + s.toString());
+		
 		Double r = 0.0;
 		/*switch(a) {
 		case ACTION_ATTACK:
@@ -72,7 +77,7 @@ public class StateUnitMin extends StateFull {
 		r += (double)((teamHP2 - teamHP) + (enemyHP - enemyHP2));
 		
 		if (a == ACTION.ACTION_RETREAT)
-			r -= 0.001;
+			r -= 1;
 		
 		return r;
 	}
@@ -111,7 +116,7 @@ public class StateUnitMin extends StateFull {
 				game.getCommandQueue().rightClick(unit.getID(), closest);
 			break;
 		}
-		System.out.println(a.toString() + " " + unit.getID());
+		//System.out.println(a.toString() + " " + unit.getID());
 	}
 	
 	

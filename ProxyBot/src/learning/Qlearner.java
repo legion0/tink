@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.*;
 import actions.ActionI;
@@ -16,16 +17,16 @@ public class Qlearner {
 	
 	private String _filePath = null;
 	
-	LinkedHashMap<String, Double> _qMap = new LinkedHashMap<String, Double>();
-	//private static Double _epsilon = 0.0,  _alpha = 0.0, _gamma = 0.0;
-	private static Double _epsilon = 0.01,  _alpha = 0.1, _gamma = 0.9;
-	//private static Double _epsilon = 0.5,  _alpha = 0.1, _gamma = 0.9;
+	TreeMap<String, Double> _qMap = new TreeMap<String, Double>();
+	private static Double _epsilon = 0.0,  _alpha = 0.0, _gamma = 0.0;
+	//private static Double _epsilon = 0.01,  _alpha = 0.1, _gamma = 0.9;
+	//private static Double _epsilon = 0.2,  _alpha = 0.1, _gamma = 0.99;
 	
 	public Qlearner(String filePath) {
 		_filePath = filePath;
 		try {
 			ObjectMapper om = new ObjectMapper();
-			_qMap = om.readValue(new File(_filePath), LinkedHashMap.class);
+			_qMap = om.readValue(new File(_filePath), TreeMap.class);
 		} catch (Exception e) {e.printStackTrace();}
 	}
 	
@@ -61,11 +62,11 @@ public class Qlearner {
 		ACTION action;
 		if (Math.random() > _epsilon) {
 			action = getPolicy(s);
-			System.out.println("P: " + action.toString() + " | " + s.toString());
+			//System.out.println("P: " + action.toString() + " | " + s.toString());
 		}
 		else {
 			action = ActionI.getRandom();
-			System.out.println("R: " + action.toString() + " | " + s.toString());
+			//System.out.println("R: " + action.toString() + " | " + s.toString());
 		}
 		return action;
 	}

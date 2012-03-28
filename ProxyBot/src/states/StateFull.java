@@ -98,4 +98,15 @@ public class StateFull implements StateI {
 		return id;
 	}
 	
+	protected static int getDistance(int unit1, int unit2, Game game) {
+		UnitWME u1 = game.getUnitByID(unit1);
+		UnitWME u2 = game.getUnitByID(unit2);
+		if (u1 == null || u2 == null)
+			return -1;
+		double xDistSquare = (u1.getX()-u2.getX())*(u1.getX()-u2.getX());
+		double yDistSquare = (u1.getY()-u2.getY())*(u1.getY()-u2.getY());
+		double distance = Math.sqrt(xDistSquare+yDistSquare);
+		return (int)Math.ceil(distance);
+	}
+	
 }

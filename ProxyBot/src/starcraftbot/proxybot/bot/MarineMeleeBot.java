@@ -55,7 +55,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	
 	private LinkedHashMap<Integer, StateI> _lastStates = new LinkedHashMap<Integer, StateI>(5);
 	
-	private Qlearner _ql = new Qlearner("db/MarineDB2.txt");
+	private Qlearner _ql = new Qlearner("db/MarineDB3.txt");
 
 	
 	/**
