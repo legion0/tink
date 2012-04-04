@@ -131,7 +131,7 @@ public class Game {
 	public void stop() {
 		synchronized(this) {
 			update = null;
-			this.notify();
+			this.notifyAll();
 		}
 	}
 
@@ -150,7 +150,7 @@ public class Game {
 		this.update = updateData;
 
 		synchronized(this) {
-			this.notify();
+			this.notifyAll();
 		}
 	}
 

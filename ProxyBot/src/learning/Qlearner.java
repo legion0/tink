@@ -1,7 +1,10 @@
 package learning;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
@@ -15,19 +18,43 @@ import states.StateI;
 
 public class Qlearner {
 	
+	private static final Double PRECISION = 0.00001;
+	
 	private String _filePath = null;
 	
 	TreeMap<String, Double> _qMap = new TreeMap<String, Double>();
-	private static Double _epsilon = 0.0,  _alpha = 0.0, _gamma = 0.0;
-	//private static Double _epsilon = 0.01,  _alpha = 0.1, _gamma = 0.9;
-	//private static Double _epsilon = 0.2,  _alpha = 0.1, _gamma = 0.99;
+	//private static Double _epsilon = 0.0, _gamma = 0.0;
+	private static Double _epsilon = 0.03, _gamma = 0.9;
+	
+	public Double alpha(StateI s, ACTION a) {
+		return 0.1;
+		//String index2 = s.toString()+"|"+a.toString();
+		
+//		String index2 = s.toString();
+//		return 1/(1+getMapVal(index2));
+	}
 	
 	public Qlearner(String filePath) {
 		_filePath = filePath;
 		try {
-			ObjectMapper om = new ObjectMapper();
-			_qMap = om.readValue(new File(_filePath), TreeMap.class);
-		} catch (Exception e) {e.printStackTrace();}
+			ObjectMapper JSON = new ObjectMapper();
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
+			String strLine, str, dblStr;
+			Double dbl = 0.0;
+			while ((strLine = br.readLine()) != null) {
+				if (strLine.length() < 2)
+					continue;
+				str = JSON.readValue(strLine.substring(0, strLine.lastIndexOf(':')).trim(), String.class);
+				dblStr = strLine.substring(strLine.lastIndexOf(':')+1,strLine.length()).trim();
+				if (dblStr.endsWith(","))
+					dblStr = dblStr.substring(0, dblStr.length()-1);
+				dbl = Double.parseDouble(dblStr);
+				if (Math.abs(dbl) < PRECISION)
+					continue;
+				_qMap.put(str, dbl);
+			}
+			br.close();
+		} catch (Exception e) {e.printStackTrace(); System.exit(-1);}
 	}
 	
 	public Qlearner() {}
@@ -62,7 +89,10 @@ public class Qlearner {
 		ACTION action;
 		if (Math.random() > _epsilon) {
 			action = getPolicy(s);
-			//System.out.println("P: " + action.toString() + " | " + s.toString());
+			//System.out.println("P: " + getValue(s) + " " + action.toString() + " | " + s.toString());
+			if (action == ACTION.ACTION_RETREAT) {
+				System.out.println("P: " + getValue(s) + " " + s.toString() + " " + getMapVal(new StateAction(s, ACTION.ACTION_ATTACK)));
+			}
 		}
 		else {
 			action = ActionI.getRandom();
@@ -74,21 +104,40 @@ public class Qlearner {
 	public void update(StateI s, ACTION a, StateI s2, Double r) {
 		StateAction index = new StateAction(s, a);
 		Double val = getMapVal(index);
-		Double newVal = (1-_alpha)*val + _alpha*(r+_gamma*getValue(s2));
+		Double newVal = 0.0;
+		Double alph = alpha(s, a);
+		if (s2 != null)
+			newVal = (1-alph)*val + alph*(r+_gamma*getValue(s2));
+		else
+			newVal = (1-alph)*val + alph*r;
+		if (Math.abs(val) < PRECISION && Math.abs(newVal) < PRECISION)
+			newVal = 0.0;
 		_qMap.put(index.toString(), newVal);
+		//String index2 = s.toString()+"|"+a.toString();
+		String index2 = s.toString();
+		_qMap.put(index2, getMapVal(index2)+1);
 	}
 	
 	private Double getMapVal(StateAction index) {
+		return getMapVal(index.toString());
+	}
+	
+	private Double getMapVal(String index) {
 		Double val = _qMap.get(index.toString());
 			return val != null ? val : 0;
 	}
 	
-	public void persist() {
+	public int size() {
+		return _qMap.size();
+	}
+	
+	public synchronized void persist() {
 		if (_filePath != null)
 			try {
 				ObjectMapper om = new ObjectMapper();
 				om.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
 				om.writeValue(new File(_filePath), _qMap);
+				System.out.println("Persisting map with size: " + size());
 			} catch (Exception e) {e.printStackTrace();}
 	}
 	

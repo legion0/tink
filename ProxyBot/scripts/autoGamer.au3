@@ -35,19 +35,19 @@ While 1==1
    Sleep(5000)
    while 1==1
 	  Send("{ENTER}")
-	  Sleep(2000)
+	  Sleep(500)
 	  if checkError() > 0 Then exitLoop
 	  Send("{ENTER}")
-	  Sleep(3000)
+	  Sleep(1000)
 	  if checkError() > 0 Then exitLoop
 	  Send("u")
-	  Sleep(2000)
+	  Sleep(500)
 	  if checkError() > 0 Then exitLoop
 	  Send("{ENTER}")
-	  Sleep(2000)
+	  Sleep(500)
 	  if checkError() > 0 Then exitLoop
 	  Send("{ENTER}")
-	  Sleep(2000)
+	  Sleep(500)
 	  if checkError() > 0 Then exitLoop
    wend
 WEnd

@@ -21,17 +21,13 @@ public class StateUnitMin extends StateFull {
 	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();
 	private static TreeMap<Integer, String> _lastOrders = new TreeMap<Integer, String>();
 	
-	public StateUnitMin(Game game, PlayerUnitWME unit) throws JsonGenerationException, JsonMappingException, IOException {
+	public StateUnitMin(Game game, PlayerUnitWME unit, boolean underFire) throws JsonGenerationException, JsonMappingException, IOException {
 		super(game);
 		_data.put("hp", discreteHP(unit.getHitPoints()));
 		int closest = getClosestEnemy(unit, game);
+		_data.put("underFire", underFire? 1 : 0);
+		
 		_data.put("distance", getDistance(unit.getID(), closest, game));
-		for (UnitWME u : game.getUnits()) {
-			if (u.getPlayerID() == unit.getPlayerID() && u.getID() != unit.getID())
-				_data.put("teamHP", getMapVal("teamHP") + discreteHP(u.getHitPoints()));
-			else if (u.getPlayerID() != unit.getPlayerID())
-				_data.put("enemyHP", getMapVal("enemyHP") + discreteHP(u.getHitPoints()));
-		}
 	}
 	
 	public String toString() {
@@ -52,11 +48,11 @@ public class StateUnitMin extends StateFull {
 		}
 		return "ERROR";
 	}
-
-	private static int discreteHP(int hp) {
-		return (int)Math.ceil(hp/10.0); // 1-4 hp for marines
-	}
 	
+	public int getHitPoints() {
+		return getMapVal("hp");
+	}
+
 	public static Double reward(StateUnitMin s, ACTION a, StateUnitMin s2) {
 		if (s.toString().equals(s2.toString()))
 			System.out.println(a.toString() + ": " + s.toString());
@@ -70,14 +66,22 @@ public class StateUnitMin extends StateFull {
 			r = 0.0;
 			break;
 		}*/
-		int teamHP = s.getMapVal("teamHP") + s.getMapVal("hp");
-		int enemyHP = s.getMapVal("enemyHP");
-		int teamHP2 = s2.getMapVal("teamHP") + s2.getMapVal("hp");
-		int enemyHP2 = s2.getMapVal("enemyHP");
-		r += (double)((teamHP2 - teamHP) + (enemyHP - enemyHP2));
+		//int hp = s.getMapVal("hp");
+		//int teamHP = s.getMapVal("teamHP") + hp;
+		//int enemyHP = s.getMapVal("enemyHP");
+		//int enemyHP = s.enemyTotalHP();
+		//int hp2 = s2.getMapVal("hp");
+		//int teamHP2 = s2.getMapVal("teamHP") + hp2;
+		//int enemyHP2 = s2.getMapVal("enemyHP");
+		//int enemyHP2 = s2.enemyTotalHP();
+		//r += (double)((teamHP2 - teamHP) + (enemyHP - enemyHP2));
+		//r += (double)((hp2 - hp) - (enemyHP2 - enemyHP));
 		
-		if (a == ACTION.ACTION_RETREAT)
-			r -= 1;
+		/*if (a == ACTION.ACTION_RETREAT)
+			r -= 1;*/
+		
+		if (s._data.get("distance") <= 6 && a == ACTION.ACTION_ATTACK)
+			r+= 1;
 		
 		return r;
 	}
@@ -141,7 +145,7 @@ public class StateUnitMin extends StateFull {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		/*if (this == obj)
 			return true;
 		if (!super.equals(obj))
 			return false;
@@ -153,7 +157,8 @@ public class StateUnitMin extends StateFull {
 				return false;
 		} else if (!_data.equals(other._data))
 			return false;
-		return true;
+		return true;*/
+		return this.toString().equals(obj.toString());
 	}
 
 	public static void EOG() {

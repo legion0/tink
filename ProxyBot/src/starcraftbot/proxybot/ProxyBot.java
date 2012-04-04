@@ -20,7 +20,7 @@ public class ProxyBot {
 	public static int port = 12345;
 	
 	/** allow the user to control units */
-	public static boolean allowUserControl = false;
+	public static boolean allowUserControl = true;
 	
 	/** turn on complete information */
 	public static boolean completeInformation = true;
@@ -50,7 +50,7 @@ public class ProxyBot {
 		    while (true) {
 			    System.out.println("Waiting for client connection");
 
-			    Socket clientSocket = serverSocket.accept();			
+			    Socket clientSocket = serverSocket.accept();
 			    runGame(clientSocket);
 		    }
 		}

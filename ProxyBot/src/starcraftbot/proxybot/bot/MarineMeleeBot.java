@@ -51,11 +51,18 @@ public class MarineMeleeBot implements StarCraftBot {
 	
 	private List<EnemyUnitWME> _enemies;
 	
+	private static Double REWARD_DEATH = -100.0;
+	
 	private boolean _persistGame = true;
 	
-	private LinkedHashMap<Integer, StateI> _lastStates = new LinkedHashMap<Integer, StateI>(5);
+	private LinkedHashMap<Integer, StateUnitMin> _lastStates = new LinkedHashMap<Integer, StateUnitMin>(5);
+	private LinkedHashMap<Integer, ACTION> _lastAction = new LinkedHashMap<Integer, ACTION>(5);
+	private LinkedHashMap<Integer, Integer> _lastHitFrame = new LinkedHashMap<Integer, Integer>(5);
 	
-	private Qlearner _ql = new Qlearner("db/MarineDB3.txt");
+	private static int games = 0, wins = 0;
+	
+	
+	private Qlearner _ql = new Qlearner("db/MarineDB4.txt");
 
 	
 	/**
@@ -74,6 +81,7 @@ public class MarineMeleeBot implements StarCraftBot {
 		}
 		int round = 0;
 		// run until told to exit
+		int lastGameFrame = 0;
 		while (running) {
 			/*try {
 				Thread.sleep(6*(ProxyBot.gameSpeed+1));
@@ -87,6 +95,10 @@ public class MarineMeleeBot implements StarCraftBot {
 					e2.printStackTrace();
 					break;
 				}
+				if (game.getGameFrame() - lastGameFrame < 7)
+					continue;
+				lastGameFrame = game.getGameFrame();
+				//System.out.println(game.getGameFrame());
 				
 				_enemies = game.getEnemyUnits();
 				
@@ -103,10 +115,17 @@ public class MarineMeleeBot implements StarCraftBot {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+				
 				for (PlayerUnitWME unit : game.getPlayerUnits()) {
-					StateI state = null;
+					StateUnitMin lastState = _lastStates.get(unit.getID());
+					StateUnitMin state = null;
 					try {
-						state = new StateUnitMin(game, unit);
+//						Integer oldHitFrame = _lastHitFrame.get(unit.getID());
+//						oldHitFrame = oldHitFrame == null ? -10 : oldHitFrame;
+//						int newHitFrame = game.getGameFrame();
+						state = new StateUnitMin(game, unit, false);
+						if (lastState != null && state.getHitPoints() != lastState.getHitPoints())
+							state = new StateUnitMin(game, unit, true);
 					} catch (JsonGenerationException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -118,13 +137,13 @@ public class MarineMeleeBot implements StarCraftBot {
 						e1.printStackTrace();
 					}
 					ACTION a = _ql.getAction(state);
-					
-					if (round > 0) {
-						StateI lastState = _lastStates.get(unit.getID());
+					if (lastState != null) {
 						Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
+						r -= round*0.01;
 						_ql.update(lastState, a, state, r);
 					}
 					_lastStates.put(unit.getID(), state);
+					_lastAction.put(unit.getID(), a);
 					
 					if (_persistGame) {
 						sb.append(a.name() + ' ');
@@ -132,14 +151,25 @@ public class MarineMeleeBot implements StarCraftBot {
 					StateUnitMin.perfomAction(a, unit, game);
 				}
 				
-				reverseDeathScan: for (Entry<Integer, StateI> entry : _lastStates.entrySet()) {
+				ArrayList<Integer> toDelete = new ArrayList<Integer>();
+				reverseDeathScan: for (Entry<Integer, StateUnitMin> entry : _lastStates.entrySet()) {
 					int unitId = entry.getKey();
 					for (PlayerUnitWME unit : game.getPlayerUnits()) {
 						if (unit.getID() == unitId)
 							continue reverseDeathScan;
 					}
 					// unit is dead
+					toDelete.add(entry.getKey());
+					StateUnitMin lastState = _lastStates.get(unitId);
+					ACTION lastAction = _lastAction.get(unitId);
+					double reward = -(double)(10*lastState.enemyTotalHP());
+					System.out.println("Unit " + unitId + " had dies with reward " + reward);
+					_ql.update(lastState, lastAction, null, reward);
 				}
+				for (int id : toDelete) {
+					_lastStates.remove(id);
+				}
+				
 				
 				if (_persistGame) {
 						sb.append("\n");
@@ -147,8 +177,12 @@ public class MarineMeleeBot implements StarCraftBot {
 				round++;
 			}
 		}
-		System.out.println(round);
+		games++;
+		if (game.getEnemyUnits().size() == 0)
+			wins++;
+		System.out.println("Rounds: " + round + " Games: " + games + " Ratio: " + (wins/(double)games));
 		StateUnitMin.EOG();
+		_ql.persist();
 		
 		if (_persistGame)
 			try {
@@ -167,6 +201,5 @@ public class MarineMeleeBot implements StarCraftBot {
 	 */
 	public void stop() {
 		running = false;
-		_ql.persist();
 	}
 }

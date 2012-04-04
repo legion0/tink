@@ -5,8 +5,10 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import starcraftbot.proxybot.Game;
+import starcraftbot.proxybot.wmes.UnitTypeWME.UnitType;
 import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
 import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
@@ -63,6 +65,20 @@ public class StateFull implements StateI {
 		}
 	}
 	
+	public int enemyTotalHP() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == 1) {
+				total += discreteHP(unit.get("hp"));
+			}
+		}
+		return total;
+	}
+	
+	public static int discreteHP(int hp) {
+		return (int)Math.ceil(hp/6.0); // 1-7 hp for marines
+	}
+	
 	public String toString() {
 		StringWriter sw = new StringWriter();
 		ObjectMapper om = new ObjectMapper();
@@ -103,8 +119,12 @@ public class StateFull implements StateI {
 		UnitWME u2 = game.getUnitByID(unit2);
 		if (u1 == null || u2 == null)
 			return -1;
-		double xDistSquare = (u1.getX()-u2.getX())*(u1.getX()-u2.getX());
-		double yDistSquare = (u1.getY()-u2.getY())*(u1.getY()-u2.getY());
+		return distance(u1.getX(), u1.getY(), u2.getX(), u2.getY());
+	}
+	
+	protected static int distance(int x1, int y1, int x2, int y2) {
+		double xDistSquare = (x1-x2)*(x1-x2);
+		double yDistSquare = (y1-y2)*(y1-y2);
 		double distance = Math.sqrt(xDistSquare+yDistSquare);
 		return (int)Math.ceil(distance);
 	}
