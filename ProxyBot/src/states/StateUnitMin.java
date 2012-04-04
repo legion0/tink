@@ -21,13 +21,25 @@ public class StateUnitMin extends StateFull {
 	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();
 	private static TreeMap<Integer, String> _lastOrders = new TreeMap<Integer, String>();
 	
-	public StateUnitMin(Game game, PlayerUnitWME unit, boolean underFire) throws JsonGenerationException, JsonMappingException, IOException {
+	public StateUnitMin(Game game, PlayerUnitWME unit) throws JsonGenerationException, JsonMappingException, IOException {
 		super(game);
 		_data.put("hp", discreteHP(unit.getHitPoints()));
+		int corner = (distance(unit.getX(),unit.getY(),0,0) < 5)? 1 : 0;
+		_data.put("corner", corner);
 		int closest = getClosestEnemy(unit, game);
-		_data.put("underFire", underFire? 1 : 0);
-		
+		//int underFire = 0;
 		_data.put("distance", getDistance(unit.getID(), closest, game));
+		for (UnitWME u : game.getUnits()) {
+			if (u.getPlayerID() == unit.getPlayerID() && u.getID() != unit.getID())
+				_data.put("teamHP", getMapVal("teamHP") + discreteHP(u.getHitPoints()));
+			else if (u.getPlayerID() != unit.getPlayerID()) {
+				_data.put("enemyHP", getMapVal("enemyHP") + discreteHP(u.getHitPoints()));
+				//if (u.)
+					//underFire = 1;
+			}
+		}
+		_data.put("teamHP", (int)Math.ceil(getMapVal("teamHP")/4.0));
+		_data.put("enemyHP", (int)Math.ceil(getMapVal("enemyHP")/5.0));
 	}
 	
 	public String toString() {
@@ -47,10 +59,6 @@ public class StateUnitMin extends StateFull {
 			e.printStackTrace();
 		}
 		return "ERROR";
-	}
-	
-	public int getHitPoints() {
-		return getMapVal("hp");
 	}
 
 	public static Double reward(StateUnitMin s, ACTION a, StateUnitMin s2) {

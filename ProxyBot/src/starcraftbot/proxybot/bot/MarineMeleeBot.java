@@ -57,12 +57,10 @@ public class MarineMeleeBot implements StarCraftBot {
 	
 	private LinkedHashMap<Integer, StateUnitMin> _lastStates = new LinkedHashMap<Integer, StateUnitMin>(5);
 	private LinkedHashMap<Integer, ACTION> _lastAction = new LinkedHashMap<Integer, ACTION>(5);
-	private LinkedHashMap<Integer, Integer> _lastHitFrame = new LinkedHashMap<Integer, Integer>(5);
-	
-	private static int games = 0, wins = 0;
-	
 	
 	private Qlearner _ql = new Qlearner("db/MarineDB4.txt");
+	
+	private static int games = 0, wins = 0;
 
 	
 	/**
@@ -80,6 +78,7 @@ public class MarineMeleeBot implements StarCraftBot {
 			sb = new StringBuffer();
 		}
 		int round = 0;
+		int activeRounds = 0;
 		// run until told to exit
 		int lastGameFrame = 0;
 		while (running) {
@@ -117,15 +116,9 @@ public class MarineMeleeBot implements StarCraftBot {
 					}
 				
 				for (PlayerUnitWME unit : game.getPlayerUnits()) {
-					StateUnitMin lastState = _lastStates.get(unit.getID());
 					StateUnitMin state = null;
 					try {
-//						Integer oldHitFrame = _lastHitFrame.get(unit.getID());
-//						oldHitFrame = oldHitFrame == null ? -10 : oldHitFrame;
-//						int newHitFrame = game.getGameFrame();
-						state = new StateUnitMin(game, unit, false);
-						if (lastState != null && state.getHitPoints() != lastState.getHitPoints())
-							state = new StateUnitMin(game, unit, true);
+						state = new StateUnitMin(game, unit);
 					} catch (JsonGenerationException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -137,10 +130,15 @@ public class MarineMeleeBot implements StarCraftBot {
 						e1.printStackTrace();
 					}
 					ACTION a = _ql.getAction(state);
-					if (lastState != null) {
-						Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
-						r -= round*0.01;
-						_ql.update(lastState, a, state, r);
+					
+					if (round > 0) {
+						StateUnitMin lastState = _lastStates.get(unit.getID());
+						if (!lastState.equals(state)) {
+							activeRounds++;
+							Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
+							_ql.update(lastState, a, state, r);
+							//System.out.println(game.getGameFrame());
+						}
 					}
 					_lastStates.put(unit.getID(), state);
 					_lastAction.put(unit.getID(), a);
@@ -162,7 +160,7 @@ public class MarineMeleeBot implements StarCraftBot {
 					toDelete.add(entry.getKey());
 					StateUnitMin lastState = _lastStates.get(unitId);
 					ACTION lastAction = _lastAction.get(unitId);
-					double reward = -(double)(10*lastState.enemyTotalHP());
+					double reward = -(double)lastState.enemyTotalHP();
 					System.out.println("Unit " + unitId + " had dies with reward " + reward);
 					_ql.update(lastState, lastAction, null, reward);
 				}
