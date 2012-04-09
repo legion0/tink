@@ -124,7 +124,7 @@ public class ProxyBot {
 	    					}
 	    				}.start();
 	    			}
-
+//	    			Thread.yield();
 	    			// 5. send commands
 	    	    	socket.getOutputStream().write(game.getCommandQueue().getCommands().getBytes());
 	    		}

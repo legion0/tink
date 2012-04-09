@@ -52,7 +52,7 @@ public class StateFull implements StateI {
 	private ArrayList<LinkedHashMap<String, Integer>> _units = new ArrayList<LinkedHashMap<String, Integer>>();
 	private Game _game;
 	
-	public StateFull(Game game) throws JsonGenerationException, JsonMappingException, IOException {
+	public StateFull(Game game) {
 		_game = game;
 		for (UnitWME u : game.getUnits()) {
 			LinkedHashMap<String, Integer> unit = new LinkedHashMap<String, Integer>(5);
@@ -68,8 +68,47 @@ public class StateFull implements StateI {
 	public int enemyTotalHP() {
 		int total = 0;
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("pid") == 1) {
+			if (unit.get("pid") == _game.getEnemy().getPlayerID()) {
 				total += discreteHP(unit.get("hp"));
+			}
+		}
+		return total;
+	}
+	
+	public int playerTotalHP() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == _game.getPlayer().getPlayerID()) {
+				total += discreteHP(unit.get("hp"));
+			}
+		}
+		return total;
+	}
+	
+	public int getUnitHP(int id) {
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("id") ==id) {
+				return discreteHP(unit.get("hp"));
+			}
+		}
+		return 0;
+	}
+	
+	public int enemyUnitCount() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == _game.getEnemy().getPlayerID()) {
+				total++;
+			}
+		}
+		return total;
+	}
+	
+	public int playerUnitCount() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == _game.getPlayer().getPlayerID()) {
+				total++;
 			}
 		}
 		return total;
@@ -97,15 +136,12 @@ public class StateFull implements StateI {
 		return sw.toString();
 	}
 	
-	protected static int getClosestEnemy(PlayerUnitWME unit, Game game) {
+	protected static int getClosestEnemy(UnitWME unit, Game game) {
 		int id = -1;
 		double closest = Double.MAX_VALUE;
 		List<EnemyUnitWME> enemies = game.getEnemyUnits();
 		for (UnitWME e : enemies) {
-			double dx = unit.getX() - e.getX();
-			double dy = unit.getY() - e.getY();
-			double dist = Math.sqrt(dx*dx + dy*dy); 
-
+			double dist = getDistance(unit, e, game);
 			if (dist < closest) {
 				id = e.getID();
 				closest = dist;
@@ -114,19 +150,23 @@ public class StateFull implements StateI {
 		return id;
 	}
 	
-	protected static int getDistance(int unit1, int unit2, Game game) {
+	protected static double getDistance(int unit1, int unit2, Game game) {
 		UnitWME u1 = game.getUnitByID(unit1);
 		UnitWME u2 = game.getUnitByID(unit2);
-		if (u1 == null || u2 == null)
-			return -1;
-		return distance(u1.getX(), u1.getY(), u2.getX(), u2.getY());
+		return getDistance(u1, u2, game);
 	}
 	
-	protected static int distance(int x1, int y1, int x2, int y2) {
+	protected static double getDistance(UnitWME u1, UnitWME u2, Game game) {
+		if (u1 == null || u2 == null)
+			return -1;
+		return distance(u1.getRealX(), u1.getRealY(), u2.getRealX(), u2.getRealY());
+	}
+	
+	protected static double distance(int x1, int y1, int x2, int y2) {
 		double xDistSquare = (x1-x2)*(x1-x2);
 		double yDistSquare = (y1-y2)*(y1-y2);
 		double distance = Math.sqrt(xDistSquare+yDistSquare);
-		return (int)Math.ceil(distance);
+		return distance;
 	}
 	
 }

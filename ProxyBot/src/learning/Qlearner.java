@@ -24,17 +24,11 @@ public class Qlearner {
 	
 	TreeMap<String, Double> _qMap = new TreeMap<String, Double>();
 	//private static Double _epsilon = 0.0, _gamma = 0.0;
-	private static Double _epsilon = 0.03, _gamma = 0.9;
+
+	private Parameters _params; 
 	
-	public Double alpha(StateI s, ACTION a) {
-		return 0.1;
-		//String index2 = s.toString()+"|"+a.toString();
-		
-//		String index2 = s.toString();
-//		return 1/(1+getMapVal(index2));
-	}
-	
-	public Qlearner(String filePath) {
+	public Qlearner(String filePath, Parameters params) {
+		_params = params;
 		_filePath = filePath;
 		try {
 			ObjectMapper JSON = new ObjectMapper();
@@ -56,8 +50,6 @@ public class Qlearner {
 			br.close();
 		} catch (Exception e) {e.printStackTrace(); System.exit(-1);}
 	}
-	
-	public Qlearner() {}
 	
 	public Double getQValue(StateI s, ACTION a) {
 		return getMapVal(new StateAction(s, a));
@@ -87,11 +79,11 @@ public class Qlearner {
 	
 	public ACTION getAction(StateI s) {
 		ACTION action;
-		if (Math.random() > _epsilon) {
+		if (Math.random() > _params.epsilon()) {
 			action = getPolicy(s);
 			//System.out.println("P: " + getValue(s) + " " + action.toString() + " | " + s.toString());
 			if (action == ACTION.ACTION_RETREAT) {
-				System.out.println("P: " + getValue(s) + " " + s.toString() + " " + getMapVal(new StateAction(s, ACTION.ACTION_ATTACK)));
+				System.out.println("P: " + getValue(s) + " " + s.toString() + " " + getMapVal(new StateAction(s, ACTION.ACTION_ATTACK)));				
 			}
 		}
 		else {
@@ -105,17 +97,14 @@ public class Qlearner {
 		StateAction index = new StateAction(s, a);
 		Double val = getMapVal(index);
 		Double newVal = 0.0;
-		Double alph = alpha(s, a);
+		Double alph = _params.alpha();
 		if (s2 != null)
-			newVal = (1-alph)*val + alph*(r+_gamma*getValue(s2));
+			newVal = (1-alph)*val + alph*(r+_params.gamma()*getValue(s2));
 		else
 			newVal = (1-alph)*val + alph*r;
 		if (Math.abs(val) < PRECISION && Math.abs(newVal) < PRECISION)
 			newVal = 0.0;
 		_qMap.put(index.toString(), newVal);
-		//String index2 = s.toString()+"|"+a.toString();
-		String index2 = s.toString();
-		_qMap.put(index2, getMapVal(index2)+1);
 	}
 	
 	private Double getMapVal(StateAction index) {

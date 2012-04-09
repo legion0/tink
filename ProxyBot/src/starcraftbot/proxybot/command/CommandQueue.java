@@ -46,6 +46,9 @@ public class CommandQueue {
     	return commandData.toString();
 	}
 	
+	public int size(){
+		return commandQueue.size();
+	}
 	/**
 	 * Adds a command to the command queue.
 	 * 

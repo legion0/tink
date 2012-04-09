@@ -27,7 +27,7 @@ public class StateUnitMin extends StateFull {
 		int closest = getClosestEnemy(unit, game);
 		_data.put("underFire", underFire? 1 : 0);
 		
-		_data.put("distance", getDistance(unit.getID(), closest, game));
+		_data.put("distance", (int)getDistance(unit.getID(), closest, game));
 	}
 	
 	public String toString() {

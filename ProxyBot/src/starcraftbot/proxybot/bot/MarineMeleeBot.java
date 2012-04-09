@@ -6,6 +6,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 
 import actions.ActionI.ACTION;
+import agents.Aagent;
+import agents.MarineAgent;
 
 
 import java.io.BufferedWriter;
@@ -15,11 +17,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import learning.Parameters;
 import learning.Qlearner;
 import misc.customDateFormatStamp;
 import starcraftbot.proxybot.Game;
@@ -40,6 +45,8 @@ import states.StateUnitMin;
  * This build will tell workers to mine, build additional workers,
  * and build additional supply units.
  */
+
+
 public class MarineMeleeBot implements StarCraftBot {
 
 	/** specifies that the agent is running */
@@ -49,20 +56,13 @@ public class MarineMeleeBot implements StarCraftBot {
 		return null;
 	}
 	
-	private List<EnemyUnitWME> _enemies;
-	
-	private static Double REWARD_DEATH = -100.0;
-	
-	private boolean _persistGame = true;
-	
-	private LinkedHashMap<Integer, StateUnitMin> _lastStates = new LinkedHashMap<Integer, StateUnitMin>(5);
-	private LinkedHashMap<Integer, ACTION> _lastAction = new LinkedHashMap<Integer, ACTION>(5);
-	private LinkedHashMap<Integer, Integer> _lastHitFrame = new LinkedHashMap<Integer, Integer>(5);
+	private ArrayList<Aagent> _agents = new ArrayList<Aagent>();
 	
 	private static int games = 0, wins = 0;
+	private static int stat_hp_total = 0, stat_hp_player = 0;
+	private static int stat_units_total = 0, stat_units_player = 0;
 	
-	
-	private Qlearner _ql = new Qlearner("db/MarineDB4.txt");
+	private Qlearner _ql = new Qlearner("db/MarineDB5.txt", new Parameters());
 
 	
 	/**
@@ -71,130 +71,65 @@ public class MarineMeleeBot implements StarCraftBot {
 	 * The bot is now the owner of the current thread.
 	 */
 	public void start(Game game) {
-		
-		BufferedWriter bw = null;
-		StringBuffer sb = null;
-		String stamp = new customDateFormatStamp().format(new Date());
-		
-		if (_persistGame) {
-			sb = new StringBuffer();
-		}
 		int round = 0;
-		// run until told to exit
-		int lastGameFrame = 0;
-		while (running) {
-			/*try {
-				Thread.sleep(6*(ProxyBot.gameSpeed+1));
+		synchronized (game) {
+			try {
+				while (game.getGameFrame() < 5)
+					game.wait();
+			} catch (InterruptedException e2) {
+				e2.printStackTrace();
 			}
-			catch (Exception e) {}*/
+		}
+		synchronized (game) {
+			for (PlayerUnitWME unit : game.getPlayerUnits()) {
+				_agents.add(new MarineAgent(game,_ql,unit.getID()));
+			}
+		}
+		
+		System.out.println("XXX Loaded " + _agents.size() + " Agents.");
+		while (running) {
 			synchronized (game) {
 				try {
 					game.wait();
 				} catch (InterruptedException e2) {
-					// TODO Auto-generated catch block
 					e2.printStackTrace();
 					break;
 				}
-				if (game.getGameFrame() - lastGameFrame < 7)
-					continue;
-				lastGameFrame = game.getGameFrame();
-				//System.out.println(game.getGameFrame());
 				
-				_enemies = game.getEnemyUnits();
 				
-				if (_persistGame)
-					try {
-						sb.append(new StateFull(game).toString() + '\n');
-					} catch (JsonGenerationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (JsonMappingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				//System.out.println("XXX Starting round " + round);
+				Iterator<Aagent> iti = _agents.iterator();
+				while (iti.hasNext()) {
+					Aagent agent = iti.next();
+					//System.out.println("XXX Controling agent " + agent.getID());
+					agent.turn();
+					if(agent.isDead()){
+						iti.remove();
 					}
-				
-				for (PlayerUnitWME unit : game.getPlayerUnits()) {
-					StateUnitMin lastState = _lastStates.get(unit.getID());
-					StateUnitMin state = null;
-					try {
-//						Integer oldHitFrame = _lastHitFrame.get(unit.getID());
-//						oldHitFrame = oldHitFrame == null ? -10 : oldHitFrame;
-//						int newHitFrame = game.getGameFrame();
-						state = new StateUnitMin(game, unit, false);
-						if (lastState != null && state.getHitPoints() != lastState.getHitPoints())
-							state = new StateUnitMin(game, unit, true);
-					} catch (JsonGenerationException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (JsonMappingException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					ACTION a = _ql.getAction(state);
-					if (lastState != null) {
-						Double r = StateUnitMin.reward((StateUnitMin)lastState, a, (StateUnitMin)state);
-						r -= round*0.01;
-						_ql.update(lastState, a, state, r);
-					}
-					_lastStates.put(unit.getID(), state);
-					_lastAction.put(unit.getID(), a);
-					
-					if (_persistGame) {
-						sb.append(a.name() + ' ');
-					}
-					StateUnitMin.perfomAction(a, unit, game);
-				}
-				
-				ArrayList<Integer> toDelete = new ArrayList<Integer>();
-				reverseDeathScan: for (Entry<Integer, StateUnitMin> entry : _lastStates.entrySet()) {
-					int unitId = entry.getKey();
-					for (PlayerUnitWME unit : game.getPlayerUnits()) {
-						if (unit.getID() == unitId)
-							continue reverseDeathScan;
-					}
-					// unit is dead
-					toDelete.add(entry.getKey());
-					StateUnitMin lastState = _lastStates.get(unitId);
-					ACTION lastAction = _lastAction.get(unitId);
-					double reward = -(double)(10*lastState.enemyTotalHP());
-					System.out.println("Unit " + unitId + " had dies with reward " + reward);
-					_ql.update(lastState, lastAction, null, reward);
-				}
-				for (int id : toDelete) {
-					_lastStates.remove(id);
-				}
-				
-				
-				if (_persistGame) {
-						sb.append("\n");
 				}
 				round++;
+//				System.out.println(game.getCommandQueue().size());
 			}
 		}
+		StateFull finalState = new StateFull(game);
 		games++;
 		if (game.getEnemyUnits().size() == 0)
 			wins++;
-		System.out.println("Rounds: " + round + " Games: " + games + " Ratio: " + (wins/(double)games));
+		int playerHp = finalState.playerTotalHP();
+		int enemyHp = finalState.enemyTotalHP();
+		int totalHp = playerHp + enemyHp;
+		int playerUnits = finalState.playerUnitCount();
+		int enemyUnits = finalState.enemyUnitCount();
+		int totalUnits = playerUnits + enemyUnits;
+		stat_hp_player += playerHp;
+		stat_hp_total += totalHp;
+		stat_units_player += playerUnits;
+		stat_units_total += totalUnits;
+		System.out.println("This Game Rounds: " + round + ", hp: " + playerHp + "/" + enemyHp + ", units: " + playerUnits + "/" + enemyUnits);
+		System.out.println("Overall Games: " + games + " | Ratios: Wins: " + (wins/(double)games) + ", hp: " + (stat_hp_player/(double)stat_hp_total) + " units: " + (stat_units_player/(double)stat_units_total));
 		StateUnitMin.EOG();
 		_ql.persist();
-		
-		if (_persistGame)
-			try {
-				bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("logs/log" + stamp + ".txt")));
-				bw.write(sb.toString());
-				bw.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	}
-
 
 	/**
 	 * Tell the main thread to quit.
