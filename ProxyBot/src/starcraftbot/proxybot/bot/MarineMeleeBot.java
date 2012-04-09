@@ -35,7 +35,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	}
 	
 	private ArrayList<Aagent> _agents = new ArrayList<Aagent>();
-	private static int MAX_GAME_FRAMES = 500;
+	private static int MAX_GAME_FRAMES = 700;
 	private static int games = 0, wins = 0;
 	private static int stat_hp_total = 0, stat_hp_player = 0;
 	private static int stat_units_total = 0, stat_units_player = 0;
@@ -111,7 +111,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	void writeStatistics(Game game, int round) {
 		StateFull finalState = new StateFull(game);
 		games++;
-		if (game.getEnemyUnits().size() == 0)
+		if (finalState.playerTotalHP() > 0)
 			wins++;
 		int playerHp = finalState.playerTotalHP();
 		int enemyHp = finalState.enemyTotalHP();
