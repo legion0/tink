@@ -7,10 +7,10 @@ public class Parameters {
 	}
 	public double gamma()
 	{
-		return 0.5;
+		return 0.8;
 	}
 	public double epsilon()
 	{
-		return 0.0;
+		return 0.01;
 	}
 }

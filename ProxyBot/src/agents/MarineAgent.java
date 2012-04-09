@@ -10,9 +10,9 @@ import states.MarineState;
 import states.StateI;
 
 public class MarineAgent extends Aagent {
-	private static final int ATTACK_LENGTH = 10;
+	private static final int ATTACK_LENGTH = 5;
 	//private static final int MARINE_FIRE_REACH = 192;
-	private static final int MARINE_FIRE_REACH = 130;
+	private static final int MARINE_FIRE_REACH = 132;
 	
 	MarineState _last = null;
 	MarineState _current = null;
@@ -39,21 +39,21 @@ public class MarineAgent extends Aagent {
 	
 	@Override
 	protected boolean actionDone() {
+		getCurrentState();
 		//System.out.println("XXX Starting action done for agent " + _id + " with action " + _action);
 		if(_lastAction == null) {
 			return true;
-		}
-		if(_lastAction == ACTION.ACTION_ATTACK){
-			if(_game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0) {
-				return true;
-			}
-		}
-		if(_lastAction == ACTION.ACTION_RETREAT){
+		} else if(_lastAction == ACTION.ACTION_ATTACK) {
+			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;
+		} else if(_lastAction == ACTION.ACTION_RETREAT) {
 			//System.out.println("XXX Agent " + _id + " has finished retreating at " + Calendar.getInstance().getTimeInMillis());
-			getCurrentState();
 //			return true;
 			if (_current.getRealDistance() > MARINE_FIRE_REACH) {
+				//System.out.println("XXX Ran away at " + _current.getRealDistance());
 				return true;
+			} else {
+				//System.out.println("XXX Distance is " + _current.getRealDistance() + " not retreating.");
+				return false;
 			}
 //			if (_current.getHpLost() == 0) {
 //				return true;
@@ -90,7 +90,7 @@ public class MarineAgent extends Aagent {
 			_game.getCommandQueue().rightClick(_id, retreatX, retreatY);
 			break;
 		case ACTION_ATTACK:
-			if (_lastState == null || (_current.getClosest() != -1 && _current.getClosest() != _last.getClosest() && _lastAction == ACTION.ACTION_ATTACK)) {
+			if (_lastState == null || _lastAction != ACTION.ACTION_ATTACK || (_current.getClosest() != -1 && _current.getClosest() != _last.getClosest())) {
 				//_game.getCommandQueue().rightClick(_id, _current.getClosest());
 				_game.getCommandQueue().attackUnit(_id, _current.getClosest());
 				_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
