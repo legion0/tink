@@ -136,7 +136,7 @@ public class StateFull implements StateI {
 		return sw.toString();
 	}
 	
-	protected static int getClosestEnemy(UnitWME unit, Game game) {
+	public static int getClosestEnemy(UnitWME unit, Game game) {
 		int id = -1;
 		double closest = Double.MAX_VALUE;
 		List<EnemyUnitWME> enemies = game.getEnemyUnits();
@@ -150,13 +150,13 @@ public class StateFull implements StateI {
 		return id;
 	}
 	
-	protected static double getDistance(int unit1, int unit2, Game game) {
+	public static double getDistance(int unit1, int unit2, Game game) {
 		UnitWME u1 = game.getUnitByID(unit1);
 		UnitWME u2 = game.getUnitByID(unit2);
 		return getDistance(u1, u2, game);
 	}
 	
-	protected static double getDistance(UnitWME u1, UnitWME u2, Game game) {
+	public static double getDistance(UnitWME u1, UnitWME u2, Game game) {
 		if (u1 == null || u2 == null)
 			return -1;
 		return distance(u1.getRealX(), u1.getRealY(), u2.getRealX(), u2.getRealY());

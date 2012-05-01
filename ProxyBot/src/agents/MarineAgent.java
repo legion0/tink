@@ -1,6 +1,7 @@
 package agents;
 
 import java.util.Calendar;
+import java.util.TreeMap;
 
 import actions.ActionI.ACTION;
 import learning.Qlearner;
@@ -16,10 +17,14 @@ public class MarineAgent extends Aagent {
 	
 	MarineState _last = null;
 	MarineState _current = null;
-	int _finishAttack = 0;
+	private int _finishAttack = 0;
+	private int _lastTarget = -1;
 	
-	public MarineAgent(Game game, Qlearner qlearn, int id) {
+	private TreeMap<Integer, Integer> _attacked;
+	
+	public MarineAgent(Game game, Qlearner qlearn, int id, TreeMap<Integer, Integer> attacked) {
 		super(game, qlearn , id);
+		_attacked = attacked;
 	}
 
 	@Override
@@ -44,6 +49,10 @@ public class MarineAgent extends Aagent {
 		if(_lastAction == null) {
 			return true;
 		} else if(_lastAction == ACTION.ACTION_ATTACK) {
+			UnitWME unit = _game.getUnitByID(_lastTarget);
+			if(unit == null) {
+				return true;
+			}
 			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;
 		} else if(_lastAction == ACTION.ACTION_RETREAT) {
 			//System.out.println("XXX Agent " + _id + " has finished retreating at " + Calendar.getInstance().getTimeInMillis());
@@ -62,10 +71,14 @@ public class MarineAgent extends Aagent {
 		return false;
 	}
 
+	public static boolean isInRange(double distance) {
+		return distance <= MARINE_FIRE_REACH;
+	}
+	
 	@Override
 	protected Double getReward(StateI last, ACTION action, StateI current) {
 		if(action == ACTION.ACTION_ATTACK) {
-			if(_current.getRealDistance() <= MARINE_FIRE_REACH) {
+			if(isInRange(_current.getRealDistance())) {
 				return 1.0;
 			}
 		}
@@ -86,13 +99,15 @@ public class MarineAgent extends Aagent {
 		if (retreatY < 1) retreatY = 1;
 		switch(_newAction) {
 			case ACTION_RETREAT:
+				_lastTarget = -1;
 				//System.out.println("XXX Agent " + _id + " is retreating at " + Calendar.getInstance().getTimeInMillis());
 				_game.getCommandQueue().rightClick(_id, retreatX, retreatY);
 				break;
 			case ACTION_ATTACK:
-				if (_lastState == null || _lastAction != ACTION.ACTION_ATTACK || (_current.getClosest() != -1)) {
-					//_game.getCommandQueue().rightClick(_id, _current.getClosest());
-					_game.getCommandQueue().attackUnit(_id, _current.getClosest());
+				int target = AttackReflexAgent.getTarget(_game,unit,_attacked);
+				if (target!=_lastTarget) {
+					_lastTarget = target;
+					_game.getCommandQueue().attackUnit(_id, target);
 					_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
 				}
 				break;
