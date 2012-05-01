@@ -1,7 +1,7 @@
 package actions;
 
 public abstract class ActionI {
-	public static enum ACTION {ACTION_ATTACK, ACTION_RETREAT};
+	public static enum ACTION {ACTION_ATTACK, ACTION_RETREAT, ACTION_};
 	
 	public static ACTION getRandom() {
 		ACTION[] actions = ACTION.values();

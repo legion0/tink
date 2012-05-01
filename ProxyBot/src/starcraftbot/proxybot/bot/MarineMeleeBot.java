@@ -50,8 +50,9 @@ import states.StateUnitMin;
 public class MarineMeleeBot implements StarCraftBot {
 
 	/** specifies that the agent is running */
-	boolean _running = true;
-	boolean _stopped = false;
+	private boolean _running = true;
+	private boolean _stopped = false;
+	private Game _game;
 	
 	public JPanel getPanel() {
 		return null;
@@ -72,33 +73,22 @@ public class MarineMeleeBot implements StarCraftBot {
 	 * The bot is now the owner of the current thread.
 	 */
 	public void start(Game game) {
+		_game = game;
 		int round = 0;
 		synchronized (game) {
 			try {
-				while (game.getGameFrame() < 5)
+				while (game.getGameFrame() < 5) {
 					game.wait();
+				}
 			} catch (InterruptedException e2) {
 				e2.printStackTrace();
 			}
-		}
-		synchronized (game) {
 			for (PlayerUnitWME unit : game.getPlayerUnits()) {
 				_agents.add(new MarineAgent(game,_ql,unit.getID()));
 			}
-		}
-		
-		System.out.println("XXX Loaded " + _agents.size() + " Agents playing vs " + game.getEnemyUnits().size() + " enemies.");
-		boolean fail = false;
-		while (_running) {
-			synchronized (game) {
-				try {
-					game.wait();
-				} catch (InterruptedException e2) {
-					e2.printStackTrace();
-					break;
-				}
-				
-				
+			System.out.println("XXX Loaded " + _agents.size() + " Agents playing vs " + game.getEnemyUnits().size() + " enemies.");
+			boolean fail = false;
+			while (_running) {			
 				//System.out.println("XXX Starting round " + round);
 				Iterator<Aagent> iti = _agents.iterator();
 				while (iti.hasNext()) {
@@ -113,20 +103,25 @@ public class MarineMeleeBot implements StarCraftBot {
 //				System.out.println(game.getCommandQueue().size());
 				if(round>MAX_GAME_FRAMES){
 					fail = true;
-					game.getCommandQueue().leaveGame();
-					
+					game.getCommandQueue().leaveGame();					
 				}
 					
+				try {
+					game.wait();
+				} catch (InterruptedException e2) {
+					e2.printStackTrace();
+					break;
+				}							
 			}
+			if(fail) {
+				_stopped = true;			
+				return;
+			}
+			
+			writeStatistics(game,round);
+			_stopped = true;		
+			_ql.persist();
 		}
-		if(fail) {
-			_stopped = true;			
-			return;
-		}
-		
-		writeStatistics(game,round);
-		_stopped = true;		
-		_ql.persist();
 	}
 	
 	void writeStatistics(Game game, int round) {
@@ -154,6 +149,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	public void stop() {
 		_running = false;
 		while(!_stopped) {
+			_game.notify();			
 			Thread.yield();
 		}
 	}

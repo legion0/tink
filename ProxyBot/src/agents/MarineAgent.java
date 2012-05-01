@@ -85,17 +85,17 @@ public class MarineAgent extends Aagent {
 		int retreatY = unit.getRealY() - 10*32;
 		if (retreatY < 1) retreatY = 1;
 		switch(_newAction) {
-		case ACTION_RETREAT:
-			//System.out.println("XXX Agent " + _id + " is retreating at " + Calendar.getInstance().getTimeInMillis());
-			_game.getCommandQueue().rightClick(_id, retreatX, retreatY);
-			break;
-		case ACTION_ATTACK:
-			if (_lastState == null || _lastAction != ACTION.ACTION_ATTACK || (_current.getClosest() != -1 && _current.getClosest() != _last.getClosest())) {
-				//_game.getCommandQueue().rightClick(_id, _current.getClosest());
-				_game.getCommandQueue().attackUnit(_id, _current.getClosest());
-				_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
-			}
-			break;
+			case ACTION_RETREAT:
+				//System.out.println("XXX Agent " + _id + " is retreating at " + Calendar.getInstance().getTimeInMillis());
+				_game.getCommandQueue().rightClick(_id, retreatX, retreatY);
+				break;
+			case ACTION_ATTACK:
+				if (_lastState == null || _lastAction != ACTION.ACTION_ATTACK || (_current.getClosest() != -1)) {
+					//_game.getCommandQueue().rightClick(_id, _current.getClosest());
+					_game.getCommandQueue().attackUnit(_id, _current.getClosest());
+					_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
+				}
+				break;
 		}
 		//System.out.println("XXX Agent " + _id + " is " + _action);
 		_last = _current;
