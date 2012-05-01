@@ -50,7 +50,8 @@ import states.StateUnitMin;
 public class MarineMeleeBot implements StarCraftBot {
 
 	/** specifies that the agent is running */
-	boolean running = true;
+	boolean _running = true;
+	boolean _stopped = false;
 	
 	public JPanel getPanel() {
 		return null;
@@ -88,7 +89,7 @@ public class MarineMeleeBot implements StarCraftBot {
 		
 		System.out.println("XXX Loaded " + _agents.size() + " Agents playing vs " + game.getEnemyUnits().size() + " enemies.");
 		boolean fail = false;
-		while (running) {
+		while (_running) {
 			synchronized (game) {
 				try {
 					game.wait();
@@ -118,8 +119,17 @@ public class MarineMeleeBot implements StarCraftBot {
 					
 			}
 		}
-		if(fail)
+		if(fail) {
+			_stopped = true;			
 			return;
+		}
+		
+		writeStatistics(game,round);
+		_stopped = true;		
+		_ql.persist();
+	}
+	
+	void writeStatistics(Game game, int round) {
 		StateFull finalState = new StateFull(game);
 		games++;
 		if (game.getEnemyUnits().size() == 0)
@@ -137,13 +147,14 @@ public class MarineMeleeBot implements StarCraftBot {
 		System.out.println("This Game Rounds: " + round + ", hp: " + playerHp + "/" + enemyHp + ", units: " + playerUnits + "/" + enemyUnits);
 		System.out.println("Overall Games: " + games + " | Ratios: Wins: " + (wins/(double)games) + ", hp: " + (stat_hp_player/(double)stat_hp_total) + " units: " + (stat_units_player/(double)stat_units_total));
 		StateUnitMin.EOG();
-		_ql.persist();
 	}
-
 	/**
 	 * Tell the main thread to quit.
 	 */
 	public void stop() {
-		running = false;
+		_running = false;
+		while(!_stopped) {
+			Thread.yield();
+		}
 	}
 }
