@@ -1,13 +1,5 @@
 package states;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.TreeMap;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-
 import starcraftbot.proxybot.Game;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 

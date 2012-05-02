@@ -29,17 +29,11 @@ public class PlayerWME extends WME {
 	/** amount of supply provided by the player */
 	private int supplyTotal;
 	
-	/** the players name */
-	private String name;
-	
 	/** the players race */
 	private Race race;
 
 	private int raceID;
 	
-	/** the players type, see http://code.google.com/p/bwapi/wiki/PlayerTypes */
-	private int type;
-
 	/** specifies if the player is an ally */
 	private boolean ally;
 
@@ -68,8 +62,7 @@ public class PlayerWME extends WME {
 			player.playerID = Integer.parseInt(attributes[0]);			
 			player.race = Race.valueOf(attributes[1]);		
 			player.raceID = player.race.ordinal();
-			player.name= attributes[2];			
-			player.type = Integer.parseInt(attributes[3]);			
+			Integer.parseInt(attributes[3]);			
 			player.ally = attributes[4].equals("1");						
 			players.add(player);
 		}		

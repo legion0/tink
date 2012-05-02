@@ -1,6 +1,5 @@
 package agents;
 
-import java.util.Map;
 import java.util.TreeMap;
 
 import starcraftbot.proxybot.Game;
@@ -11,7 +10,7 @@ import states.StateFull;
 public class AttackReflexAgent {
 
 	private static final int MAX_EHP = 8;
-	private static final int MIN_EHP = 0;
+	private static final int MIN_EHP = -1;
 
 	public static int getTarget(Game game, UnitWME attacker, TreeMap<Integer, Integer> attacked) {
 

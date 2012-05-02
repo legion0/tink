@@ -2,42 +2,19 @@ package starcraftbot.proxybot.bot;
 
 import javax.swing.JPanel;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-
-import actions.ActionI.ACTION;
 import agents.Aagent;
 import agents.MarineAgent;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map.Entry;
-
+import java.util.TreeMap;
 import learning.Parameters;
 import learning.Qlearner;
-import misc.customDateFormatStamp;
 import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.Constants.Order;
-import starcraftbot.proxybot.Constants.Race;
-import starcraftbot.proxybot.ProxyBot;
-import starcraftbot.proxybot.wmes.UnitTypeWME;
-import starcraftbot.proxybot.wmes.UnitTypeWME.UnitType;
 import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
 import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
 import states.StateFull;
-import states.StateI;
 import states.StateUnitMin;
 /**
  * Example implementation of the StarCraftBot.
@@ -52,8 +29,6 @@ public class MarineMeleeBot implements StarCraftBot {
 	/** specifies that the agent is running */
 	private boolean _running = true;
 	private boolean _stopped = false;
-	private Game _game;
-	
 	public JPanel getPanel() {
 		return null;
 	}
@@ -73,9 +48,9 @@ public class MarineMeleeBot implements StarCraftBot {
 	 * The bot is now the owner of the current thread.
 	 */
 	public void start(Game game) {
-		_game = game;
 		int round = 0;
 		synchronized (game) {
+			TreeMap<Integer, Integer> attacked = new TreeMap<Integer, Integer>();
 			try {
 				while (game.getGameFrame() < 5) {
 					game.wait();
@@ -83,8 +58,11 @@ public class MarineMeleeBot implements StarCraftBot {
 			} catch (InterruptedException e2) {
 				e2.printStackTrace();
 			}
+			for (EnemyUnitWME enemy : game.getEnemyUnits()) {
+				attacked.put(enemy.getID(),0);
+			}
 			for (PlayerUnitWME unit : game.getPlayerUnits()) {
-				_agents.add(new MarineAgent(game,_ql,unit.getID()));
+				_agents.add(new MarineAgent(game,_ql,unit.getID(),attacked));
 			}
 			System.out.println("XXX Loaded " + _agents.size() + " Agents playing vs " + game.getEnemyUnits().size() + " enemies.");
 			boolean fail = false;
@@ -99,6 +77,7 @@ public class MarineMeleeBot implements StarCraftBot {
 						iti.remove();
 					}
 				}
+				
 				round++;
 //				System.out.println(game.getCommandQueue().size());
 				if(round>MAX_GAME_FRAMES){
@@ -149,7 +128,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	public void stop() {
 		_running = false;
 		while(!_stopped) {
-			_game.notify();			
+//			_game.notify();		
 			Thread.yield();
 		}
 	}

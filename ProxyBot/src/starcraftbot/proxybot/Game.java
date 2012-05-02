@@ -228,18 +228,15 @@ public class Game {
 	 * Returns the player's starting location.
 	 */
 	public StartingLocationWME getPlayerStart() {
-		int i;
 		ArrayList<PlayerUnitWME> playerUnits = this.getPlayerUnits();
 		ArrayList<StartingLocationWME> startingLocations = this.getStartingLocations();
 
 		for (PlayerUnitWME unit:playerUnits) {
 			if (unit.getIsCenter()) {
-				i = 0;
 				for (StartingLocationWME start:startingLocations) {
 					if (start.getX() == unit.getX() && start.getY() == unit.getY()) {
 						return start;
 					}
-					i++;
 				}
 			}
 		}
@@ -251,18 +248,15 @@ public class Game {
 	 * If there are multiple enemy sides, it returns the start location of an arbitrary enemy.
 	 */
 	public StartingLocationWME getEnemyStart() {
-		int i;
 		ArrayList<EnemyUnitWME> enemyUnits = this.getEnemyUnits();
 		ArrayList<StartingLocationWME> startingLocations = this.getStartingLocations();
 
 		for (EnemyUnitWME unit:enemyUnits) {
 			if (unit.getIsCenter()) {
-				i = 0;
 				for (StartingLocationWME start:startingLocations) {
 					if (start.getX() == unit.getX() && start.getY() == unit.getY()) {
 						return start;
 					}
-					i++;
 				}
 			}
 		}

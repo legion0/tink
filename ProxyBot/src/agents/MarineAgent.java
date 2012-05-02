@@ -1,6 +1,5 @@
 package agents;
 
-import java.util.Calendar;
 import java.util.TreeMap;
 
 import actions.ActionI.ACTION;
@@ -11,9 +10,11 @@ import states.MarineState;
 import states.StateI;
 
 public class MarineAgent extends Aagent {
-	private static final int ATTACK_LENGTH = 5;
+	private static final int ATTACK_LENGTH = 9;
 	//private static final int MARINE_FIRE_REACH = 192;
-	private static final int MARINE_FIRE_REACH = 132;
+	//private static final int MARINE_FIRE_REACH = 132;
+	private static final int MARINE_RETREAT_RANGE = 132;
+	private static final int MARINE_FIRE_REACH = 212;
 	
 	MarineState _last = null;
 	MarineState _current = null;
@@ -53,21 +54,26 @@ public class MarineAgent extends Aagent {
 			if(unit == null) {
 				return true;
 			}
-			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;
+//			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;
+			if(_game.getGameFrame() < _finishAttack) System.out.println("action not done 3");
+			
+			return _game.getGameFrame() >= _finishAttack;
 		} else if(_lastAction == ACTION.ACTION_RETREAT) {
 			//System.out.println("XXX Agent " + _id + " has finished retreating at " + Calendar.getInstance().getTimeInMillis());
 //			return true;
-			if (_current.getRealDistance() > MARINE_FIRE_REACH) {
+			if (_current.getRealDistance() > MARINE_RETREAT_RANGE) {
 				//System.out.println("XXX Ran away at " + _current.getRealDistance());
 				return true;
 			} else {
 				//System.out.println("XXX Distance is " + _current.getRealDistance() + " not retreating.");
+				System.out.println("action not done 1");
 				return false;
 			}
 //			if (_current.getHpLost() == 0) {
 //				return true;
 //			}
 		}
+		System.out.println("action not done 2  - " + _lastAction.name());		
 		return false;
 	}
 
@@ -97,6 +103,9 @@ public class MarineAgent extends Aagent {
 		int retreatX = unit.getRealX();
 		int retreatY = unit.getRealY() - 10*32;
 		if (retreatY < 1) retreatY = 1;
+		if(_lastTarget!=-1) {
+			_attacked.put(_lastTarget, _attacked.get(_lastTarget)-1);
+		}
 		switch(_newAction) {
 			case ACTION_RETREAT:
 				_lastTarget = -1;
@@ -106,10 +115,14 @@ public class MarineAgent extends Aagent {
 			case ACTION_ATTACK:
 				int target = AttackReflexAgent.getTarget(_game,unit,_attacked);
 				if (target!=_lastTarget) {
+					if(target == -1) {
+						return;
+					}
 					_lastTarget = target;
 					_game.getCommandQueue().attackUnit(_id, target);
 					_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
 				}
+				_attacked.put(target, _attacked.get(target)+1);
 				break;
 		}
 		//System.out.println("XXX Agent " + _id + " is " + _action);

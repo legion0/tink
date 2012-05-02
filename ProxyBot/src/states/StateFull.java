@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.UnitTypeWME.UnitType;
 import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
-import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
 import starcraftbot.proxybot.wmes.unit.UnitWME;
 
 import org.codehaus.jackson.JsonGenerationException;

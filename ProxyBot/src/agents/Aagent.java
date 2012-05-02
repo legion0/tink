@@ -1,10 +1,5 @@
 package agents;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-
 import actions.ActionI.ACTION;
 import learning.Qlearner;
 import starcraftbot.proxybot.Game;

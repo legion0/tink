@@ -1,9 +1,4 @@
 package starcraftbot.proxybot.wmes;
-
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
 /**
  * Stores tile information about a map in StarCraft.
  * 

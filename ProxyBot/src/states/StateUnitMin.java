@@ -2,8 +2,6 @@ package states;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -13,9 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import actions.ActionI.ACTION;
 
 import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.command.Command;
 import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
 
 public class StateUnitMin extends StateFull {
 	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();

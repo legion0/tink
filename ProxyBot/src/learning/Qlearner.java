@@ -3,16 +3,9 @@ package learning;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.TreeMap;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.*;
 import actions.ActionI;
 import actions.ActionI.ACTION;
@@ -30,7 +23,6 @@ public class Qlearner {
 	//private static Double _epsilon = 0.0, _gamma = 0.0;
 	
 	
-	private StateI firstState = null;
 	private ArrayList<StateI> stateList1 = new ArrayList<StateI>(3072);
 	private ArrayList<StateI> stateList2 = new ArrayList<StateI>(3072);
 	private ArrayList<ACTION> actionList = new ArrayList<ACTION>(3072);

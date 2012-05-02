@@ -104,10 +104,10 @@ public class ProxyBot {
 	    	while (true) {
 	    		
 	    		String update = reader.readLine();
-	    		if (update.startsWith("ended")) {
+	    		if (update == null) {
 	    			break;
 	    		}
-	    		else if (update == null) {
+	    		else if (update.startsWith("ended")) {
 	    			break;
 	    		}
 	    		else {
