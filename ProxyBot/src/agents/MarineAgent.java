@@ -10,11 +10,11 @@ import states.MarineState;
 import states.StateI;
 
 public class MarineAgent extends Aagent {
-	private static final int ATTACK_LENGTH = 9;
+	private static final int ATTACK_LENGTH = 2;
 	//private static final int MARINE_FIRE_REACH = 192;
 	//private static final int MARINE_FIRE_REACH = 132;
 	private static final int MARINE_RETREAT_RANGE = 132;
-	private static final int MARINE_FIRE_REACH = 212;
+	private static final int MARINE_FIRE_REACH = 152;
 	
 	MarineState _last = null;
 	MarineState _current = null;
@@ -54,9 +54,7 @@ public class MarineAgent extends Aagent {
 			if(unit == null) {
 				return true;
 			}
-//			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;
-			if(_game.getGameFrame() < _finishAttack) System.out.println("action not done 3");
-			
+//			return _game.getGameFrame() >= _finishAttack || _current.getHpLost() > 0;	
 			return _game.getGameFrame() >= _finishAttack;
 		} else if(_lastAction == ACTION.ACTION_RETREAT) {
 			//System.out.println("XXX Agent " + _id + " has finished retreating at " + Calendar.getInstance().getTimeInMillis());
@@ -66,14 +64,12 @@ public class MarineAgent extends Aagent {
 				return true;
 			} else {
 				//System.out.println("XXX Distance is " + _current.getRealDistance() + " not retreating.");
-				System.out.println("action not done 1");
 				return false;
 			}
 //			if (_current.getHpLost() == 0) {
 //				return true;
 //			}
-		}
-		System.out.println("action not done 2  - " + _lastAction.name());		
+		}		
 		return false;
 	}
 
@@ -93,8 +89,14 @@ public class MarineAgent extends Aagent {
 	
 	@Override
 	protected Double rewardDeath() {
+		if(_lastTarget!=-1) {
+			_attacked.put(_lastTarget, _attacked.get(_lastTarget)-1);
+			_lastTarget=-1;			
+		}
+		
 		double enemyHP = _newState.enemyTotalHP();
-		return -enemyHP/13.0;
+		//return -enemyHP/13.0;
+		return -enemyHP/5;
 	}
 
 	@Override

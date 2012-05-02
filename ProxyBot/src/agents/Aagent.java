@@ -42,7 +42,7 @@ public abstract class Aagent {
 	protected boolean updateState() {
 		//System.out.println("XXX Update State for agent " + _id);
 		UnitWME unit = _game.getUnitByID(_id);
-		if(unit == null){
+		if(unit == null || unit.getHitPoints() == 0){
 			_isDead = true;
 			StateI last = getLastState();
 			StateI current = null;

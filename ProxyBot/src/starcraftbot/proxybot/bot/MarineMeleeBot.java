@@ -29,6 +29,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	/** specifies that the agent is running */
 	private boolean _running = true;
 	private boolean _stopped = false;
+	private Game _game;
 	public JPanel getPanel() {
 		return null;
 	}
@@ -50,6 +51,10 @@ public class MarineMeleeBot implements StarCraftBot {
 	public void start(Game game) {
 		int round = 0;
 		synchronized (game) {
+			if(_running == false) {
+				return;
+			}
+			_game = game;
 			TreeMap<Integer, Integer> attacked = new TreeMap<Integer, Integer>();
 			try {
 				while (game.getGameFrame() < 5) {
@@ -127,8 +132,13 @@ public class MarineMeleeBot implements StarCraftBot {
 	 */
 	public void stop() {
 		_running = false;
-		while(!_stopped) {
-//			_game.notify();		
+		if(_game == null) {
+			return;
+		}		
+		while(!_stopped) {		
+			synchronized (_game) {			
+				_game.notify();
+			}
 			Thread.yield();
 		}
 	}
