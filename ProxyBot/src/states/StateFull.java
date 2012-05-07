@@ -85,7 +85,7 @@ public class StateFull implements StateI {
 	
 	public int getUnitHP(int id) {
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("id") ==id) {
+			if (unit.get("id") == id) {
 				return discreteHP(unit.get("hp"));
 			}
 		}

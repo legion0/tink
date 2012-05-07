@@ -8,7 +8,7 @@ public class MarineState extends StateFull {
 //	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();
 	private Double _realDisatance;
 	
-	private int _hp = -1, _hpLost = 0, _distance = 0;
+	private int _hp = -1, _hpLost = 0, _distance = 0, _unitRatio = 0, _teamHPRatio = 0;
 	
 	public MarineState(Game game, int id, int hpLost){
 		super(game);
@@ -20,9 +20,29 @@ public class MarineState extends StateFull {
 		_hp = discreteHP(unit.getHitPoints());
 		_hpLost = hpLost;
 		_distance = discDistance(id,_closest,game);
+		_unitRatio = discreteTanH(playerUnitCount(), enemyUnitCount(), 0.8, 3);
+		_teamHPRatio = discreteTanH(playerTotalHP(), enemyTotalHP(), 0.8, 3);
+		
 //		_data.put("hp", _hp);
 //		_data.put("underFire", _hpLost);
 //		_data.put("distance", _distance);
+	}
+	
+	protected int discreteTanH(double x, double y, double strech, int scale) {
+		double val;
+		if (y == 0)
+			return scale;
+		if (x == 0)
+			return -scale;
+		if (x > y)
+			val = x/(double)y - 1;
+		else if (y > x)
+			val = -y/(double)x + 1;
+		else
+			val = 0;
+		val = val / strech;
+		val = Math.tanh(val) * scale;
+		return (int)Math.round(val);
 	}
 	
 	private int discDistance(int id, int closest, Game game)	{		
@@ -68,7 +88,12 @@ public class MarineState extends StateFull {
 //		}
 //		System.err.println("bad toString");
 //		return "ERROR";
-		return "|hp "+_hp + "|hpLost " + _hpLost + "|distance " + _distance + "|";
+		return "|" +
+			"hp " + _hp + "|" +
+			"hpLost " + _hpLost + "|" +
+			"distance " + _distance + "|" +
+			"unitRatio " + _unitRatio + "|" +
+			"teamHPRatio " + _teamHPRatio + "|";
 	}
 
 	@Override

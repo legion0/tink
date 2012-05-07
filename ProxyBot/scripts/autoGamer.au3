@@ -2,23 +2,29 @@ Dim $chaosTitle = "Chaoslauncher"
 Dim $gameTitle = "Brood War"
 Dim $chaosExec = "C:\Program Files\Starcraft\Chaoslauncher\Chaoslauncher.exe"
 Dim $chaosPath = "C:\Program Files\Starcraft\Chaoslauncher"
+Dim $begin
 
 Opt("WinTitleMatchMode", 2) ;1=start, 2=subStr, 3=exact, 4=advanced, -1 to -4=Nocase
 dim $arr
 While 1==1
+   $begin = TimerInit()
+   WinClose($gameTitle)
+   Sleep(500)
    $arr = WinList($chaosTitle)
    if $arr[0][0] == 0 Then
 	  Run($chaosExec,$chaosPath)
    EndIf
-   WinWait($chaosTitle)
+   if (WinWait($chaosTitle, "", 5) == 0) Then ContinueLoop
    WinActivate($chaosTitle)
-   Send("{ENTER}")
-   WinWait("Success")
-   WinActivate("Success")
-   Send("{ENTER}")
-   WinWait($gameTitle)
-   WinActivate($gameTitle)
    Sleep(1000)
+   Send("{ENTER}")
+   if (WinWait("Success", "", 5) == 0) Then ContinueLoop
+   WinActivate("Success")
+   Sleep(1000)
+   Send("{ENTER}")
+   if (WinWait($gameTitle, "", 5) == 0) Then ContinueLoop
+   WinActivate($gameTitle)
+   Sleep(2000)
    Send("s")
    Sleep(1000)
    Send("e")
@@ -32,7 +38,9 @@ While 1==1
    Send("{ENTER}")
    Sleep(1000)
    Send("{ENTER}")
-   Sleep(5000)
+   Sleep(1
+   
+   000)
    while 1==1
 	  Send("{ENTER}")
 	  Sleep(500)
@@ -53,9 +61,10 @@ While 1==1
 WEnd
 
 func checkError()
+   $diff = TimerDiff($begin)/1000/60
+   ConsoleWrite($diff & @CRLF)
+   If ($diff > 15) Then Return 1
    $arr = WinList($gameTitle)
-   if $arr[0][0] == 0 Then
-	  return 1
-   EndIf
-   return 0
+   if $arr[0][0] == 0 Then Return 1
+   Return 0
 endfunc

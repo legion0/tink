@@ -37,6 +37,7 @@ public class MarineMeleeBot implements StarCraftBot {
 	private ArrayList<Aagent> _agents = new ArrayList<Aagent>();
 	private static int MAX_GAME_FRAMES = 700;
 	private static int games = 0, wins = 0;
+	private static long startedTraining = Calendar.getInstance().getTimeInMillis()/1000/60;
 	private static int stat_hp_total = 0, stat_hp_player = 0;
 	private static int stat_units_total = 0, stat_units_player = 0;
 	
@@ -123,8 +124,9 @@ public class MarineMeleeBot implements StarCraftBot {
 		stat_hp_total += totalHp;
 		stat_units_player += playerUnits;
 		stat_units_total += totalUnits;
+		long elapsed = Calendar.getInstance().getTimeInMillis()/1000/60 - startedTraining;
 		System.out.println("This Game Rounds: " + round + ", hp: " + playerHp + "/" + enemyHp + ", units: " + playerUnits + "/" + enemyUnits);
-		System.out.println("Overall Games: " + games + " | Ratios: Wins: " + (wins/(double)games) + ", hp: " + (stat_hp_player/(double)stat_hp_total) + " units: " + (stat_units_player/(double)stat_units_total));
+		System.out.println("Overall Games: " + games + "(" + elapsed + "min)" + " | Ratios: Wins: " + (wins/(double)games) + ", hp: " + (stat_hp_player/(double)stat_hp_total) + " units: " + (stat_units_player/(double)stat_units_total));
 		StateUnitMin.EOG();
 	}
 	/**
