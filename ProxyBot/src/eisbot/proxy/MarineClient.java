@@ -1,7 +1,4 @@
 package eisbot.proxy;
-/**
- * Example of a Java AI Client that does nothing.
- */
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -26,7 +23,7 @@ public class MarineClient implements BWAPIEventListener {
 	private static int stat_hp_total = 0, stat_hp_player = 0;
 	private static int stat_units_total = 0, stat_units_player = 0;
 	private static int _round = 0;
-	
+	private static boolean _dontSave = false;
 	private Qlearner _ql = new Qlearner("db/MarineDB5.txt", new Parameters());
 
 	JNIBWAPI bwapi;
@@ -43,12 +40,14 @@ public class MarineClient implements BWAPIEventListener {
 	
 	public void gameStarted() {
 		for (Unit unit : bwapi.getEnemyUnits()) {
-			if (unit.getTypeID() == Unit.Type_Marine) {
+//			if (unit.getTypeID() == Unit.Type_Marine) {
+			if (unit.getTypeID() == Unit.Type_Dragoon) {				
 				_attacked.put(unit.getID(),0);
 			}
 		}
 		for (Unit unit : bwapi.getMyUnits()) {
-			if (unit.getTypeID() == Unit.Type_Marine) {
+//			if (unit.getTypeID() == Unit.Type_Marine) {
+			if (unit.getTypeID() == Unit.Type_Dragoon) {
 				_agents.add(new MarineAgent(bwapi,_ql,unit.getID(),_attacked));
 			}
 		}
@@ -56,6 +55,10 @@ public class MarineClient implements BWAPIEventListener {
 	}
 	public void gameUpdate() 
 	{
+		if(_agents.size() ==0){
+			gameStarted();
+		}
+			
 		try {
 //			System.out.println("XXX update frame: " + bwapi.getFrameCount() + " round: " + _round);
 			Iterator<Aagent> iti = _agents.iterator();
@@ -67,7 +70,14 @@ public class MarineClient implements BWAPIEventListener {
 				}
 			}
 			if(_round > MAX_GAME_FRAMES){
-				// TODO: need code for surrender // bwapi.
+				_dontSave = true;
+				for (Unit unit : bwapi.getMyUnits()) {
+//					if (unit.getTypeID() == Unit.Type_Marine) {
+					if (unit.getTypeID() == Unit.Type_Dragoon) {
+						int enemyID = StateFull.getClosestEnemy(unit,bwapi);
+						bwapi.attack(unit.getID(), enemyID);
+					}
+				}				
 			}
 			_round++;
 		} catch (Exception ex) { ex.printStackTrace(); }
@@ -95,6 +105,8 @@ public class MarineClient implements BWAPIEventListener {
 	
 	public void gameEnded() {
 		System.out.println("gameEnded");
+		if(_dontSave)
+			return;
 		writeStatistics();
 		_ql.persist();
 	}

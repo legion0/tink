@@ -147,6 +147,27 @@ public class StateFull implements StateI {
 		return id;
 	}
 	
+	public static int getRetreatY(Unit unit, JNIBWAPI game) {
+		int ret = 1;
+		double closest = Double.MAX_VALUE;
+		List<Unit> enemies = game.getEnemyUnits();
+		for (Unit e : enemies) {
+			double dist = getDistance(unit, e, game);
+			if (dist < closest) {
+				if(e.getY()>unit.getY()){
+					ret = unit.getY() - 10 * 32;
+				} else {
+					ret = unit.getY() + 10 * 32;
+				}
+			}
+		}
+		if (ret < 1)
+			ret = 1;
+		if (ret > 1000)
+			ret = 1000;
+		return ret;
+	}
+	
 	public static double getDistance(int unit1, int unit2, JNIBWAPI game) {
 		Unit u1 = game.getUnit(unit1);
 		Unit u2 = game.getUnit(unit2);

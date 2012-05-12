@@ -10,6 +10,7 @@ public class Unit {
 	public static final double TO_DEGREES = 180.0/Math.PI;
 	public static final double fixedScale = 100.0;
 	public static final int Type_Marine = 0;
+	public static final int Type_Dragoon = 66;
 
 	private int ID;
 	private int playerID;

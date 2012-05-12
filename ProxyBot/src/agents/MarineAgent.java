@@ -6,6 +6,7 @@ import eisbot.proxy.model.Unit;
 import actions.ActionI.ACTION;
 import learning.Qlearner;
 import states.MarineState;
+import states.StateFull;
 import states.StateI;
 
 public class MarineAgent extends Aagent {
@@ -109,16 +110,14 @@ public class MarineAgent extends Aagent {
 	protected void preformAction() {
 //		System.out.println("XXX preformAction for agent " + _id);
 		Unit unit = _game.getUnit(_id);
-		int retreatX = unit.getX();
-		int retreatY = unit.getY() - 10 * 32;
-		if (retreatY < 1)
-			retreatY = 1;
 		if (_lastTarget != -1) {
 			_attacked.put(_lastTarget, _attacked.get(_lastTarget) - 1);
 		}
 		switch (_newAction) {
 		case ACTION_RETREAT:
-			_lastTarget = -1;
+			_lastTarget = -1;			
+			int retreatX = unit.getX();
+			int retreatY = StateFull.getRetreatY(unit,_game);		
 //			System.out.println("XXX Agent " + _id + " is retreating at "
 //					+ Calendar.getInstance().getTimeInMillis());
 			_game.rightClick(_id, retreatX, retreatY);
@@ -131,7 +130,8 @@ public class MarineAgent extends Aagent {
 				}
 				_lastTarget = target;
 				//_game.getCommandQueue().attackUnit(_id, target);
-				_game.rightClick(_id, target);
+//				_game.rightClick(_id, target);
+				_game.attack(_id, target);
 				System.out.println("XXX Agent " + _id + " attacking " + target);
 				_finishAttack = _game.getFrameCount() + ATTACK_LENGTH;
 			}
