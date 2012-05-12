@@ -1,7 +1,7 @@
 package states;
 
-import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
+import eisbot.proxy.JNIBWAPI;
+import eisbot.proxy.model.Unit;
 
 public class MarineState extends StateFull {
 	private int _closest;
@@ -10,10 +10,10 @@ public class MarineState extends StateFull {
 	
 	private int _hp = -1, _hpLost = 0, _distance = 0, _unitRatio = 0, _teamHPRatio = 0;
 	
-	public MarineState(Game game, int id, int hpLost){
+	public MarineState(JNIBWAPI game, int id, int hpLost){
 		super(game);
 		
-		UnitWME unit = game.getUnitByID(id);
+		Unit unit = game.getUnit(id);
 		_closest = getClosestEnemy(unit, game);
 		_realDisatance = getDistance(id, _closest, game);
 		
@@ -45,7 +45,7 @@ public class MarineState extends StateFull {
 		return (int)Math.round(val);
 	}
 	
-	private int discDistance(int id, int closest, Game game)	{		
+	private int discDistance(int id, int closest, JNIBWAPI game)	{		
 		return (int)Math.ceil(_realDisatance/32);
 	}
 	

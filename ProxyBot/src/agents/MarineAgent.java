@@ -1,11 +1,10 @@
 package agents;
 
 import java.util.TreeMap;
-
+import eisbot.proxy.JNIBWAPI;
+import eisbot.proxy.model.Unit;
 import actions.ActionI.ACTION;
 import learning.Qlearner;
-import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
 import states.MarineState;
 import states.StateI;
 
@@ -23,7 +22,7 @@ public class MarineAgent extends Aagent {
 
 	private TreeMap<Integer, Integer> _attacked;
 
-	public MarineAgent(Game game, Qlearner qlearn, int id,
+	public MarineAgent(JNIBWAPI game, Qlearner qlearn, int id,
 			TreeMap<Integer, Integer> attacked) {
 		super(game, qlearn, id);
 		_attacked = attacked;
@@ -47,31 +46,30 @@ public class MarineAgent extends Aagent {
 
 	@Override
 	protected boolean actionDone() {
+//		System.out.println("XXX Starting action done for agent " + _id + " with action " + _lastAction);
 		getCurrentState();
-		// System.out.println("XXX Starting action done for agent " + _id +
-		// " with action " + _action);
 		if (_lastAction == null) {
 			return true;
 		} else if (_lastAction == ACTION.ACTION_ATTACK) {
-			UnitWME unit = _game.getUnitByID(_lastTarget);
+			Unit unit = _game.getUnit(_lastTarget);
 			if (unit == null) {
 				return true;
 			}
 			// return _game.getGameFrame() >= _finishAttack ||
 			// _current.getHpLost() > 0;
-			return _game.getGameFrame() >= _finishAttack;
+			return _game.getFrameCount() >= _finishAttack;
 		} else if (_lastAction == ACTION.ACTION_RETREAT) {
-			// System.out.println("XXX Agent " + _id +
-			// " has finished retreating at " +
-			// Calendar.getInstance().getTimeInMillis());
+//			System.out.println("XXX Agent " + _id
+//					+ " has finished retreating at "
+//					+ Calendar.getInstance().getTimeInMillis());
 			// return true;
 			if (_current.getRealDistance() > MARINE_RETREAT_RANGE) {
-				// System.out.println("XXX Ran away at " +
-				// _current.getRealDistance());
+//				System.out.println("XXX Ran away at "
+//						+ _current.getRealDistance());
 				return true;
 			} else {
-				// System.out.println("XXX Distance is " +
-				// _current.getRealDistance() + " not retreating.");
+//				System.out.println("XXX Distance is "
+//						+ _current.getRealDistance() + " not retreating.");
 				return false;
 			}
 			// if (_current.getHpLost() == 0) {
@@ -109,9 +107,10 @@ public class MarineAgent extends Aagent {
 
 	@Override
 	protected void preformAction() {
-		UnitWME unit = _game.getUnitByID(_id);
-		int retreatX = unit.getRealX();
-		int retreatY = unit.getRealY() - 10 * 32;
+//		System.out.println("XXX preformAction for agent " + _id);
+		Unit unit = _game.getUnit(_id);
+		int retreatX = unit.getX();
+		int retreatY = unit.getY() - 10 * 32;
 		if (retreatY < 1)
 			retreatY = 1;
 		if (_lastTarget != -1) {
@@ -120,9 +119,9 @@ public class MarineAgent extends Aagent {
 		switch (_newAction) {
 		case ACTION_RETREAT:
 			_lastTarget = -1;
-			// System.out.println("XXX Agent " + _id + " is retreating at " +
-			// Calendar.getInstance().getTimeInMillis());
-			_game.getCommandQueue().rightClick(_id, retreatX, retreatY);
+//			System.out.println("XXX Agent " + _id + " is retreating at "
+//					+ Calendar.getInstance().getTimeInMillis());
+			_game.rightClick(_id, retreatX, retreatY);
 			break;
 		case ACTION_ATTACK:
 			int target = AttackReflexAgent.getTarget(_game, unit, _attacked);
@@ -131,13 +130,15 @@ public class MarineAgent extends Aagent {
 					return;
 				}
 				_lastTarget = target;
-				_game.getCommandQueue().attackUnit(_id, target);
-				_finishAttack = _game.getGameFrame() + ATTACK_LENGTH;
+				//_game.getCommandQueue().attackUnit(_id, target);
+				_game.rightClick(_id, target);
+				System.out.println("XXX Agent " + _id + " attacking " + target);
+				_finishAttack = _game.getFrameCount() + ATTACK_LENGTH;
 			}
 			_attacked.put(target, _attacked.get(target) + 1);
 			break;
 		}
-		// System.out.println("XXX Agent " + _id + " is " + _action);
+//		System.out.println("XXX Agent " + _id + " is " + _newAction);
 		_last = _current;
 
 	}

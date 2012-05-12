@@ -7,13 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.unit.EnemyUnitWME;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import eisbot.proxy.JNIBWAPI;
+import eisbot.proxy.model.Unit;
 
 public class StateFull implements StateI {
 	/* (non-Javadoc)
@@ -48,11 +47,11 @@ public class StateFull implements StateI {
 	}
 
 	private ArrayList<LinkedHashMap<String, Integer>> _units = new ArrayList<LinkedHashMap<String, Integer>>();
-	private Game _game;
+	private JNIBWAPI _game;
 	
-	public StateFull(Game game) {
+	public StateFull(JNIBWAPI game) {
 		_game = game;
-		for (UnitWME u : game.getUnits()) {
+		for (Unit u : game.getAllUnits()) {
 			LinkedHashMap<String, Integer> unit = new LinkedHashMap<String, Integer>(5);
 			unit.put("pid", u.getPlayerID());
 			unit.put("id", u.getID());
@@ -66,7 +65,7 @@ public class StateFull implements StateI {
 	public int enemyTotalHP() {
 		int total = 0;
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("pid") == _game.getEnemy().getPlayerID()) {
+			if (unit.get("pid") == _game.getEnemies().get(0).getID()) {
 				total += discreteHP(unit.get("hp"));
 			}
 		}
@@ -76,7 +75,7 @@ public class StateFull implements StateI {
 	public int playerTotalHP() {
 		int total = 0;
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("pid") == _game.getPlayer().getPlayerID()) {
+			if (unit.get("pid") == _game.getSelf().getID()) {
 				total += discreteHP(unit.get("hp"));
 			}
 		}
@@ -95,7 +94,7 @@ public class StateFull implements StateI {
 	public int enemyUnitCount() {
 		int total = 0;
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("pid") == _game.getEnemy().getPlayerID()) {
+			if (unit.get("pid") == _game.getEnemies().get(0).getID()) {
 				total++;
 			}
 		}
@@ -105,7 +104,7 @@ public class StateFull implements StateI {
 	public int playerUnitCount() {
 		int total = 0;
 		for (Map<String, Integer> unit : _units) {
-			if (unit.get("pid") == _game.getPlayer().getPlayerID()) {
+			if (unit.get("pid") == _game.getSelf().getID()) {
 				total++;
 			}
 		}
@@ -134,11 +133,11 @@ public class StateFull implements StateI {
 		return sw.toString();
 	}
 	
-	public static int getClosestEnemy(UnitWME unit, Game game) {
+	public static int getClosestEnemy(Unit unit, JNIBWAPI game) {
 		int id = -1;
 		double closest = Double.MAX_VALUE;
-		List<EnemyUnitWME> enemies = game.getEnemyUnits();
-		for (UnitWME e : enemies) {
+		List<Unit> enemies = game.getEnemyUnits();
+		for (Unit e : enemies) {
 			double dist = getDistance(unit, e, game);
 			if (dist < closest) {
 				id = e.getID();
@@ -148,16 +147,16 @@ public class StateFull implements StateI {
 		return id;
 	}
 	
-	public static double getDistance(int unit1, int unit2, Game game) {
-		UnitWME u1 = game.getUnitByID(unit1);
-		UnitWME u2 = game.getUnitByID(unit2);
+	public static double getDistance(int unit1, int unit2, JNIBWAPI game) {
+		Unit u1 = game.getUnit(unit1);
+		Unit u2 = game.getUnit(unit2);
 		return getDistance(u1, u2, game);
 	}
 	
-	public static double getDistance(UnitWME u1, UnitWME u2, Game game) {
+	public static double getDistance(Unit u1, Unit u2, JNIBWAPI game) {
 		if (u1 == null || u2 == null)
 			return -1;
-		return distance(u1.getRealX(), u1.getRealY(), u2.getRealX(), u2.getRealY());
+		return distance(u1.getX(), u1.getY(), u2.getX(), u2.getY());
 	}
 	
 	protected static double distance(int x1, int y1, int x2, int y2) {

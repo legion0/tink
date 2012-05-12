@@ -1,25 +1,25 @@
 package agents;
 
+import eisbot.proxy.JNIBWAPI;
+import eisbot.proxy.model.Unit;
 import actions.ActionI.ACTION;
 import learning.Qlearner;
-import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.unit.UnitWME;
 import states.StateFull;
 import states.StateI;
 
 public abstract class Aagent {
-	protected Game _game;
+	protected JNIBWAPI _game;
 	protected Qlearner _qlearn;
 	protected int _id;
 	protected StateFull _lastState;
 	protected StateFull _newState;
-	protected ACTION _lastAction, _newAction;
+	protected ACTION _lastAction = null, _newAction = null;
 	protected boolean _isDead;
 
 	protected int _hpHistory[] = { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 };
 	protected int _hpHIndex = 0;
 
-	public Aagent(Game game, Qlearner qlearn, int id) {
+	public Aagent(JNIBWAPI game, Qlearner qlearn, int id) {
 		_game = game;
 		_qlearn = qlearn;
 		_id = id;
@@ -27,7 +27,7 @@ public abstract class Aagent {
 	}
 
 	public void turn() {
-		// System.out.println("XXX Playing agent " + _id);
+//		System.out.println("XXX Playing agent " + _id);
 		if (updateState()) {
 			newAction();
 			_lastState = _newState;
@@ -44,9 +44,10 @@ public abstract class Aagent {
 	}
 
 	protected boolean updateState() {
-		// System.out.println("XXX Update State for agent " + _id);
-		UnitWME unit = _game.getUnitByID(_id);
+//		System.out.println("XXX Update State for agent " + _id);
+		Unit unit = _game.getUnit(_id);
 		if (unit == null || unit.getHitPoints() == 0) {
+//			System.out.println("XXX Update State for agent " + _id + ": unit is dead");
 			_isDead = true;
 			StateI last = getLastState();
 			StateI current = null;
@@ -57,10 +58,13 @@ public abstract class Aagent {
 		_newState = new StateFull(_game);
 		_hpHIndex = (_hpHIndex + 1) % _hpHistory.length;
 		_hpHistory[_hpHIndex] = _newState.getUnitHP(_id);
-		return actionDone();
+		boolean done = actionDone();
+//		System.out.println("XXX Update State for agent " + _id + ": done " + done);
+		return done;
 	}
 
 	protected void newAction() {
+//		System.out.println("XXX newAction for agent " + _id);
 		// give reward for last action
 		StateI last = getLastState();
 		StateI current = getCurrentState();

@@ -8,16 +8,16 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import actions.ActionI.ACTION;
+import eisbot.proxy.JNIBWAPI;
+import eisbot.proxy.model.Unit;
 
-import starcraftbot.proxybot.Game;
-import starcraftbot.proxybot.wmes.unit.PlayerUnitWME;
+import actions.ActionI.ACTION;
 
 public class StateUnitMin extends StateFull {
 	private TreeMap<String, Integer> _data = new TreeMap<String, Integer>();
 	private static TreeMap<Integer, String> _lastOrders = new TreeMap<Integer, String>();
 	
-	public StateUnitMin(Game game, PlayerUnitWME unit, boolean underFire) throws JsonGenerationException, JsonMappingException, IOException {
+	public StateUnitMin(JNIBWAPI game, Unit unit, boolean underFire) throws JsonGenerationException, JsonMappingException, IOException {
 		super(game);
 		_data.put("hp", discreteHP(unit.getHitPoints()));
 		int closest = getClosestEnemy(unit, game);
@@ -87,17 +87,17 @@ public class StateUnitMin extends StateFull {
 			return val != null ? val : 0;
 	}
 
-	public static void perfomAction(ACTION a, PlayerUnitWME unit, Game game) {
+	public static void perfomAction(ACTION a, Unit unit, JNIBWAPI game) {
 		String oldOrder = _lastOrders.get(unit.getID());
 		int closest = getClosestEnemy(unit, game);
 		
 		String newOrder = "";
 		switch (a) {
 		case ACTION_RETREAT:
-			newOrder = "" + unit.getOrder()  + "ACTION_RETREAT";
+			newOrder = "" + unit.getOrderID()  + "ACTION_RETREAT";
 			break;
 		case ACTION_ATTACK:
-			newOrder = "" + unit.getOrder()  + "ACTION_ATTACK" + closest;
+			newOrder = "" + unit.getOrderID()  + "ACTION_ATTACK" + closest;
 			break;
 		}
 		
@@ -109,11 +109,11 @@ public class StateUnitMin extends StateFull {
 		
 		switch(a) {
 		case ACTION_RETREAT:
-			game.getCommandQueue().rightClick(unit.getID(), 1, 1);
+			game.rightClick(unit.getID(), 1, 1);
 			break;
 		case ACTION_ATTACK:
 			if (closest != -1)
-				game.getCommandQueue().rightClick(unit.getID(), closest);
+				game.rightClick(unit.getID(), closest);
 			break;
 		}
 		//System.out.println(a.toString() + " " + unit.getID());

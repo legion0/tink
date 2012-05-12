@@ -1,4 +1,0 @@
-[{"pid":1,"id":6,"hp":4,"x":6,"y":6},{"pid":1,"id":7,"hp":16,"x":7,"y":5},{"pid":0,"id":2,"hp":28,"x":3,"y":4},{"pid":0,"id":3,"hp":40,"x":2,"y":4},{"pid":1,"id":10,"hp":28,"x":7,"y":5},{"pid":0,"id":5,"hp":22,"x":3,"y":3}]
-ACTION_ATTACK ACTION_RETREAT ACTION_ATTACK 
-[{"pid":0,"id":3,"hp":28,"x":0,"y":0}]
-ACTION_ATTACK 
