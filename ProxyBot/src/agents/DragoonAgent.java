@@ -5,26 +5,27 @@ import eisbot.proxy.JNIBWAPI;
 import eisbot.proxy.model.Unit;
 import actions.ActionI.ACTION;
 import learning.Qlearner;
+import states.DragoonState;
 import states.MarineState;
 import states.StateFull;
 import states.StateI;
 
-public class MarineAgent extends Aagent {
+public class DragoonAgent extends Aagent {
 	private static final int ATTACK_LENGTH = 2;
 	// private static final int MARINE_FIRE_REACH = 192;
 	// private static final int MARINE_FIRE_REACH = 132;
-	private static final int MARINE_RETREAT_RANGE = 132;
-	private static final int MARINE_FIRE_REACH = 152;
-	private static final int MARINE_ANIMATION_CANCELING = 3;
-
-	MarineState _last = null;
-	MarineState _current = null;
-	private int _finishAttack = 0;
+	private static final int DRAGOON_RETREAT_RANGE = 162;
+	private static final int DRAGOON_FIRE_REACH = 162;
+	private static final int DRAGOON_ANIMATION_CANCELING = 3;
+	private static final int DRAGOON_RETREAT_DURATION = 10;
+	
+	DragoonState _last = null;
+	DragoonState _current = null;
 	private int _lastTarget = -1;
-
+	private int _retreat=0;
 	private TreeMap<Integer, Integer> _attacked;
 
-	public MarineAgent(JNIBWAPI game, Qlearner qlearn, int id,
+	public DragoonAgent(JNIBWAPI game, Qlearner qlearn, int id,
 			TreeMap<Integer, Integer> attacked) {
 		super(game, qlearn, id);
 		_attacked = attacked;
@@ -42,7 +43,7 @@ public class MarineAgent extends Aagent {
 		// if(_lastState != null) {
 		// hpLost = _lastState.getUnitHP(_id) - _newState.getUnitHP(_id);
 		// }
-		_current = new MarineState(_game, _id, hpLost);
+		_current = new DragoonState(_game, _id, hpLost);
 		return _current;
 	}
 
@@ -59,7 +60,7 @@ public class MarineAgent extends Aagent {
 			}
 			// return _game.getGameFrame() >= _finishAttack ||
 			// _current.getHpLost() > 0;
-			if(unit.getGroundWeaponCooldown()<MARINE_ANIMATION_CANCELING){
+			if(unit.getGroundWeaponCooldown()<DRAGOON_ANIMATION_CANCELING){
 				return true;
 			}
 			return false;
@@ -69,11 +70,14 @@ public class MarineAgent extends Aagent {
 //					+ " has finished retreating at "
 //					+ Calendar.getInstance().getTimeInMillis());
 			// return true;
-			if (_current.getRealDistance() > MARINE_RETREAT_RANGE) {
+			if (_current.getRealDistance() > DRAGOON_RETREAT_RANGE) {
 //				System.out.println("XXX Ran away at "
 //						+ _current.getRealDistance());
 				return true;
 			} else {
+				_retreat--;
+				if(_retreat == 0)
+					return true;
 //				System.out.println("XXX Distance is "
 //						+ _current.getRealDistance() + " not retreating.");
 				return false;
@@ -86,7 +90,7 @@ public class MarineAgent extends Aagent {
 	}
 
 	public static boolean isInRange(double distance) {
-		return distance <= MARINE_FIRE_REACH;
+		return distance <= DRAGOON_FIRE_REACH;
 	}
 
 	@Override
@@ -108,7 +112,7 @@ public class MarineAgent extends Aagent {
 
 		double enemyHP = _newState.enemyTotalHP();
 		// return -enemyHP/13.0;
-		return -enemyHP / 5;
+		return -enemyHP / 5.0;
 	}
 
 	@Override
@@ -125,21 +129,22 @@ public class MarineAgent extends Aagent {
 			int retreatY = StateFull.getRetreatY(unit,_game);		
 //			System.out.println("XXX Agent " + _id + " is retreating at "
 //					+ Calendar.getInstance().getTimeInMillis());
+			_retreat=DRAGOON_RETREAT_DURATION;			
 			_game.rightClick(_id, retreatX, retreatY);
 			break;
 		case ACTION_ATTACK:
-//			int target = AttackReflexAgent.getTarget(_game, unit, _attacked);
-			int target = StateFull.getClosestEnemy(unit, _game);		
+			int target = AttackReflexAgent.getDragoonTarget(_game, unit, _attacked);
+//			int target = StateFull.getClosestEnemy(unit, _game);
+			if (target == -1) {
+				return;
+			}			
 			if (target != _lastTarget) {
-				if (target == -1) {
-					return;
-				}
 				_lastTarget = target;
 				//_game.getCommandQueue().attackUnit(_id, target);
 //				_game.rightClick(_id, target);
 				_game.attack(_id, target);
 //				System.out.println("XXX Agent " + _id + " attacking " + target);
-				_finishAttack = _game.getFrameCount() + ATTACK_LENGTH;
+//				_finishAttack = _game.getFrameCount() + ATTACK_LENGTH;
 			}
 			_attacked.put(target, _attacked.get(target) + 1);
 			break;

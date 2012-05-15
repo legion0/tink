@@ -36,6 +36,8 @@ public class Qlearner {
 		_filePath = filePath;
 		try {
 			ObjectMapper JSON = new ObjectMapper();
+			if (!new File(filePath).exists())
+				new File(filePath).createNewFile();
 			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
 			String strLine, str, dblStr;
 			Double dbl = 0.0;
@@ -87,7 +89,7 @@ public class Qlearner {
 			action = getPolicy(s);
 			//System.out.println("P: " + getValue(s) + " " + action.toString() + " | " + s.toString());
 			if (action == ACTION.ACTION_RETREAT) {
-				System.out.println("P: " + getValue(s) + " " + s.toString() + " " + getMapVal(new StateAction(s, ACTION.ACTION_ATTACK)));				
+//				System.out.println("P: " + getValue(s) + " " + s.toString() + " " + getMapVal(new StateAction(s, ACTION.ACTION_ATTACK)));				
 			}
 		}
 		else {

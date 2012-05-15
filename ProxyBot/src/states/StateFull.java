@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import eisbot.proxy.JNIBWAPI;
 import eisbot.proxy.model.Unit;
+import eisbot.proxy.types.UnitType;
 
 public class StateFull implements StateI {
 	/* (non-Javadoc)
@@ -52,10 +53,14 @@ public class StateFull implements StateI {
 	public StateFull(JNIBWAPI game) {
 		_game = game;
 		for (Unit u : game.getAllUnits()) {
+			if (u.getTypeID() != UnitType.UnitTypes.Terran_Marine.ordinal() && u.getTypeID() != UnitType.UnitTypes.Protoss_Dragoon.ordinal()) {
+				continue;
+			}
 			LinkedHashMap<String, Integer> unit = new LinkedHashMap<String, Integer>(5);
 			unit.put("pid", u.getPlayerID());
 			unit.put("id", u.getID());
 			unit.put("hp", u.getHitPoints());
+			unit.put("shield", u.getShield());
 			unit.put("x", u.getX());
 			unit.put("y", u.getY());
 			_units.add(unit);
@@ -82,6 +87,27 @@ public class StateFull implements StateI {
 		return total;
 	}
 	
+	public int DragoonPlayerTotalHP() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == _game.getSelf().getID()) {			
+				total += dragoonHP(unit.get("hp"));
+				total += dragoonShield(unit.get("shield"));
+			}
+		}
+		return total;
+	}
+	
+	public int DragoonEnemyTotalHP() {
+		int total = 0;
+		for (Map<String, Integer> unit : _units) {
+			if (unit.get("pid") == _game.getEnemies().get(0).getID()) {
+				total += dragoonHP(unit.get("hp"));
+				total += dragoonShield(unit.get("shield"));
+			}
+		}
+		return total;
+	}
 	public int getUnitHP(int id) {
 		for (Map<String, Integer> unit : _units) {
 			if (unit.get("id") == id) {
@@ -115,6 +141,12 @@ public class StateFull implements StateI {
 		return (int)Math.ceil(hp/6.0); // 1-7 hp for marines
 	}
 	
+	public static int dragoonHP(int hp) {
+		return (int)Math.ceil(hp/20.0); // 1-5 hp for dragoons
+	}
+	public static int dragoonShield(int shield) {
+		return (int)Math.ceil(shield/20.0); // 1-4 shots per shield for dragoons
+	}
 	public String toString() {
 		StringWriter sw = new StringWriter();
 		ObjectMapper om = new ObjectMapper();
